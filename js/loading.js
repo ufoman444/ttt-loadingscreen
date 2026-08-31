@@ -32,7 +32,7 @@
     mapImage: $('mapImage'), mapFallback: $('mapFallback'), mapName: $('mapName'),
     mapHint: $('mapHint'), mapStatus: $('mapStatus'),
     rules: $('rules'),
-    avatarImg: $('avatarImg'), avatarCanvas: $('avatarCanvas'),
+    avatarImg: $('avatarImg'),
     playerName: $('playerName'), playerCode: $('playerCode'),
     steamLink: $('steamLink'), steamId: $('steamId'),
     stats: $('stats'), verdict: $('verdict'),
@@ -289,8 +289,21 @@
     'Zuletzt gesehen beim Verlassen des Traitor-Raums. Rein zufällig.'
   ];
 
-  function drawIdenticon(canvas, seed) {
-    if (!canvas || !canvas.getContext) return;
+  /**
+   * Zeichnet ein aus der SteamID abgeleitetes Muster und hängt es als Bild in
+   * den Avatar-Rahmen.
+   *
+   * Bewusst über ein <img> statt über ein sichtbares <canvas>: Eingebettete
+   * Browser — und der von Garry's Mod ist einer — stellen Canvas-Inhalte nicht
+   * immer zuverlässig dar. Ein fertiges Bild zeigt jeder. Nebenbei nimmt der
+   * echte Steam-Avatar später denselben Weg.
+   * @param {number} seed Hash der SteamID
+   */
+  function drawIdenticon(seed) {
+    var canvas = doc.createElement('canvas');
+    if (!canvas.getContext) return;
+    canvas.width = canvas.height = 128;
+
     var ctx = canvas.getContext('2d');
     var r = rng(seed);
     var size = canvas.width, cells = 5, cell = size / cells;
@@ -312,6 +325,13 @@
           ctx.fillRect((cells - 1 - x) * cell, y * cell, cell, cell);  // gespiegelt
         }
       }
+    }
+
+    try {
+      el.avatarImg.src = canvas.toDataURL('image/png');
+      el.avatarImg.hidden = false;
+    } catch (e) {
+      LOG.warning('Avatar konnte nicht erzeugt werden:', e && e.message);
     }
   }
 
@@ -356,7 +376,7 @@
       el.steamLink.removeAttribute('href');
       el.verdict.innerHTML = '<b>Hinweis für den Admin:</b> Häng <code>?steamid=%s</code> ' +
                              'an deine sv_loadingurl, dann steht hier das echte Profil.';
-      drawIdenticon(el.avatarCanvas, hash('anonym'));
+      drawIdenticon(hash('anonym'));
       renderStats(hash('anonym'));
       return;
     }
@@ -370,7 +390,7 @@
     el.steamLink.href = 'https://steamcommunity.com/profiles/' + id;
     el.verdict.innerHTML = '<b>Aktenvermerk:</b> ' + esc(pick(VERDIKTE, r));
 
-    drawIdenticon(el.avatarCanvas, seed);
+    drawIdenticon(seed);
     renderStats(seed);
 
     /* Echter Name + Avatar, falls ein Proxy konfiguriert ist. */
@@ -393,11 +413,8 @@
         catch (e) { LOG.warning('Profil-Endpunkt lieferte kein gueltiges JSON.'); return; }
         if (data && data.name) el.playerName.textContent = data.name;
         if (data && data.avatar) {
-          el.avatarImg.onload = function () {
-            el.avatarImg.hidden = false;
-            el.avatarCanvas.style.display = 'none';
-          };
-          el.avatarImg.src = data.avatar;
+          el.avatarImg.src = data.avatar;      // ersetzt das erzeugte Muster
+          el.avatarImg.hidden = false;
         }
       };
       xhr.onerror = function () { LOG.warning('Profil-Endpunkt nicht erreichbar:', url); };

@@ -40,7 +40,7 @@
     </div>
 
     <!-- Musiksteuerung: Stummschalter + Lautstärkeregler -->
-    <div class="audio" id="audio">
+    <div class="audio is-on" id="audio">
       <button class="audio__mute" id="musicBtn" type="button" aria-pressed="true"
               title="Musik stummschalten" aria-label="Musik stummschalten">
         <svg class="audio__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -130,8 +130,6 @@
         <div class="profile__id">
           <div class="profile__avatar">
             <img id="avatarImg" alt="" hidden>
-            <canvas id="avatarCanvas" width="128" height="128" aria-hidden="true"></canvas>
-            <span class="profile__ribbon" aria-hidden="true">verd&auml;chtig</span>
           </div>
           <div class="profile__names">
             <strong class="profile__name" id="playerName">Unbekannter Terrorist</strong>
