@@ -13,7 +13,7 @@ window.TTT_CONFIG = {
      ───────────────────────────────────────────────────────────────────────── */
   serverName: 'Trouble in Terrorist Town',
   fallbackGamemode: 'terrortown',
-  fallbackMaxPlayers: 32,
+  fallbackMaxPlayers: 10,
 
   /* ─────────────────────────────────────────────────────────────────────────
      2) REGELN
