@@ -120,10 +120,10 @@ Schritt für Schritt.
 
 Steam verrät nicht, welche `.bsp` in einem Addon steckt — dafür gibt es keinen
 Endpunkt. Der Mapname wird deshalb aus Tag, Titel und Beschreibung erschlossen.
-Bei einer echten Sammlung mit 249 Addons (davon 89 Maps) waren 74 eindeutig,
-also 83 %. Der Rest hängt am normalisierten Titel und wird vom Prüfskript
-aufgelistet. Passt eine Zuordnung nicht, trägst du sie in `config.mapImages`
-ein — das gewinnt gegen alles andere.
+Bei einer echten Sammlung mit 249 Addons (davon 89 Maps) waren 74 Zuordnungen
+eindeutig und 16 hingen nur am normalisierten Titel. Letztere listet das
+Prüfskript einzeln auf. Passt eine davon nicht, trägst du die Map in
+`config.mapImages` ein — das gewinnt gegen alles andere.
 
 Eigenes Bild machen: im Spiel die Konsole öffnen und `jpeg` eingeben.
 (404-Meldungen in der Browser-Konsole beim Durchprobieren der Bildpfade sind

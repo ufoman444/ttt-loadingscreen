@@ -97,7 +97,7 @@ Für die 89 Maps der genannten Sammlung:
 
 | | |
 |---|---|
-| eindeutig zugeordnet | 74 (83 %) |
+| eindeutig zugeordnet | 74 |
 | nur über den normalisierten Titel | 16 |
 | Vorschaubilder erreichbar | alle |
 
