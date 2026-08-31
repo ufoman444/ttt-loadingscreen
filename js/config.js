@@ -104,12 +104,18 @@ window.TTT_CONFIG = {
      Ohne Zusatzaufwand zeigt der Screen: SteamID64, Profil-Link, einen
      generierten Avatar und ein (humoristisches) Täterprofil.
 
-     Willst du den echten Steam-Namen + Avatar, brauchst du einen kleinen
-     Server-Proxy (proxy/steam.php liegt bei). Dann hier eintragen:
-        profileEndpoint: 'proxy/steam.php?steamid={steamid}'
+     Sind echter Steam-Name und Avatar gewuenscht, braucht es einen kleinen
+     Server-Endpunkt — Steam laesst sich vom Browser aus nicht abfragen.
+     Einen API-Key brauchst du dafuer NICHT.
+
+        proxy/steam-function.js  → '/steam-profile?steamid={steamid}'
+                                   (Cloudflare Pages / Netlify)
+        proxy/steam.php          → 'proxy/steam.php?steamid={steamid}'
+
      Erwartete Antwort: {"name":"...","avatar":"https://..."}
+     Leer lassen: dann bleibt es beim erzeugten Muster-Avatar.
      ───────────────────────────────────────────────────────────────────────── */
-  profileEndpoint: '',
+  profileEndpoint: '/steam-profile?steamid={steamid}',
 
   /* Nur für die Vorschau im Browser: Ruft man die Seite ohne `?steamid=`
      auf, bliebe die Profilkarte leer. Meldet sich nach vier Sekunden keine

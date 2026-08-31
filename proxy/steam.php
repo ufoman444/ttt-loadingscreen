@@ -25,13 +25,10 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: public, max-age=600');
 header('X-Content-Type-Options: nosniff');
 
-/* Key ausschließlich aus der Umgebung — nicht hier hineinschreiben. */
+/* Ein Key ist optional. Ist keiner gesetzt, geht es ueber die oeffentliche
+   Profilseite als XML - die liefert Name und Avatar ohne jede Anmeldung.
+   Der Key darf ausschliesslich aus der Umgebung kommen, niemals aus dem Code. */
 $apiKey = getenv('STEAM_API_KEY');
-if (!$apiKey) {
-    http_response_code(500);
-    echo json_encode(['error' => 'STEAM_API_KEY ist nicht gesetzt']);
-    exit;
-}
 
 /* Eingabe hart validieren: eine SteamID64 ist genau 17 Ziffern. */
 $steamid = isset($_GET['steamid']) ? (string) $_GET['steamid'] : '';
@@ -48,9 +45,10 @@ if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < 3600) {
     exit;
 }
 
-$url = 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/'
-     . '?key=' . urlencode($apiKey)
-     . '&steamids=' . urlencode($steamid);
+$url = $apiKey
+    ? 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/'
+      . '?key=' . urlencode($apiKey) . '&steamids=' . urlencode($steamid)
+    : 'https://steamcommunity.com/profiles/' . urlencode($steamid) . '?xml=1';
 
 $ch = curl_init($url);
 curl_setopt_array($ch, [
@@ -69,20 +67,30 @@ if ($raw === false || $code !== 200) {
     exit;
 }
 
-$data   = json_decode($raw, true);
-$player = $data['response']['players'][0] ?? null;
+/** Holt ein CDATA-Feld aus der Profil-XML. */
+function xmlFeld(string $xml, string $name): string {
+    $muster = '#<' . $name . '>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</' . $name . '>#s';
+    return preg_match($muster, $xml, $t) ? trim($t[1]) : '';
+}
 
-if (!$player) {
+if ($apiKey) {
+    $data   = json_decode($raw, true);
+    $player = $data['response']['players'][0] ?? null;
+    $name   = $player['personaname'] ?? '';
+    $avatar = $player['avatarfull'] ?? ($player['avatarmedium'] ?? '');
+} else {
+    $name   = xmlFeld($raw, 'steamID');
+    $avatar = xmlFeld($raw, 'avatarFull') ?: xmlFeld($raw, 'avatarMedium');
+}
+
+if (!$name && !$avatar) {
     http_response_code(404);
     echo json_encode(['error' => 'Profil nicht gefunden']);
     exit;
 }
 
 /* Nur das herausgeben, was der Ladebildschirm wirklich braucht. */
-$out = json_encode([
-    'name'   => $player['personaname']  ?? 'Unbekannt',
-    'avatar' => $player['avatarfull']   ?? ($player['avatarmedium'] ?? ''),
-]);
+$out = json_encode(['name' => $name ?: 'Unbekannt', 'avatar' => $avatar]);
 
 @file_put_contents($cacheFile, $out);
 echo $out;

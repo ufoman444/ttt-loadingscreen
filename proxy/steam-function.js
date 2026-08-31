@@ -1,39 +1,81 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   OPTIONAL: Steam-Profil-Proxy als Serverless Function
-   Für kostenlose Hoster ohne PHP — Cloudflare Pages, Netlify, Vercel.
+   ECHTER STEAM-NAME UND AVATAR  (Serverless Function)
 
-   Der Steam-API-Key bleibt serverseitig. Niemals in js/config.js schreiben.
+   Liefert zu einer SteamID64 den Anzeigenamen und das Profilbild.
+
+   Zwei Wege, der erste braucht keinerlei Anmeldung:
+
+     1. Ohne Key: steamcommunity.com/profiles/<id>?xml=1
+        Liefert Name und Avatar auch bei "nur Freunde"-Profilen. Reicht für
+        einen Ladebildschirm vollkommen aus.
+     2. Mit Key:  ISteamUser/GetPlayerSummaries
+        Wird automatisch bevorzugt, sobald STEAM_API_KEY gesetzt ist —
+        stabiler und offiziell unterstützt.
+
+   WARUM SERVERSEITIG?
+   Steam schickt keine CORS-Header. Der Browser des Spielers darf weder die
+   API noch die Profilseite abfragen. Und ein API-Key hätte im Client ohnehin
+   nichts verloren: Der Ladebildschirm ist für jeden lesbar.
 
    ── Cloudflare Pages ──────────────────────────────────────────────────────
-   Datei ablegen unter:  functions/steam.js
-   Key setzen:           Settings → Environment variables → STEAM_API_KEY
-   In js/config.js:      profileEndpoint: '/steam?steamid={steamid}'
+   Datei ablegen unter:  functions/steam-profile.js
+   In js/config.js:      profileEndpoint: '/steam-profile?steamid={steamid}'
+   Key (optional):       Settings → Environment variables → STEAM_API_KEY
 
    ── Netlify ───────────────────────────────────────────────────────────────
-   Datei ablegen unter:  netlify/functions/steam.js
-   Key setzen:           Site settings → Environment variables → STEAM_API_KEY
-   In js/config.js:      profileEndpoint: '/.netlify/functions/steam?steamid={steamid}'
-   (Der Export unten funktioniert bei Netlify über den `handler`-Alias.)
+   Datei ablegen unter:  netlify/functions/steam-profile.js
+   In js/config.js:      profileEndpoint: '/.netlify/functions/steam-profile?steamid={steamid}'
    ══════════════════════════════════════════════════════════════════════════ */
 
 const CACHE_SECONDS = 3600;
+const UA = 'Mozilla/5.0 (compatible; TTT-LoadingScreen/1.0)';
 
-async function lookup(steamid, apiKey) {
+/** Holt den Inhalt eines CDATA-Feldes aus der Profil-XML. */
+function feld(xml, name) {
+  const m = xml.match(new RegExp('<' + name + '>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</' + name + '>'));
+  return m ? m[1].trim() : '';
+}
+
+/**
+ * Weg 1: öffentliche Profilseite als XML. Kein Key, keine Registrierung.
+ * @param {string} steamid
+ * @returns {Promise<?{name: string, avatar: string}>}
+ */
+async function ohneKey(steamid) {
+  const res = await fetch(`https://steamcommunity.com/profiles/${steamid}?xml=1`, {
+    headers: { 'User-Agent': UA, 'Accept-Language': 'en' }
+  });
+  if (!res.ok) return null;
+
+  const xml = await res.text();
+  const name = feld(xml, 'steamID');
+  const avatar = feld(xml, 'avatarFull') || feld(xml, 'avatarMedium') || feld(xml, 'avatarIcon');
+  if (!name && !avatar) return null;
+
+  return { name: name || 'Unbekannt', avatar };
+}
+
+/**
+ * Weg 2: offizielle Web-API. Wird genommen, sobald ein Key hinterlegt ist.
+ * @param {string} steamid
+ * @param {string} apiKey
+ * @returns {Promise<?{name: string, avatar: string}>}
+ */
+async function mitKey(steamid, apiKey) {
   const url = 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/'
             + '?key=' + encodeURIComponent(apiKey)
             + '&steamids=' + encodeURIComponent(steamid);
 
-  const res = await fetch(url, { headers: { 'User-Agent': 'TTT-LoadingScreen/1.0' } });
+  const res = await fetch(url, { headers: { 'User-Agent': UA } });
   if (!res.ok) return null;
 
   const data = await res.json();
-  const players = data && data.response && data.response.players;
-  if (!players || !players.length) return null;
+  const spieler = data && data.response && data.response.players && data.response.players[0];
+  if (!spieler) return null;
 
-  const p = players[0];
   return {
-    name: p.personaname || 'Unbekannt',
-    avatar: p.avatarfull || p.avatarmedium || ''
+    name: spieler.personaname || 'Unbekannt',
+    avatar: spieler.avatarfull || spieler.avatarmedium || ''
   };
 }
 
@@ -42,44 +84,40 @@ function json(body, status) {
     status: status || 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'public, max-age=' + CACHE_SECONDS,
+      'Cache-Control': `public, max-age=${status && status !== 200 ? 600 : CACHE_SECONDS}`,
       'X-Content-Type-Options': 'nosniff'
     }
   });
 }
 
-/* ── Cloudflare Pages Functions ──────────────────────────────────────────── */
-export async function onRequest(context) {
-  const steamid = new URL(context.request.url).searchParams.get('steamid') || '';
+async function behandle(request, env) {
+  const steamid = (new URL(request.url).searchParams.get('steamid') || '').trim();
 
   /* Eine SteamID64 hat genau 17 Ziffern. Alles andere fliegt raus. */
   if (!/^\d{17}$/.test(steamid)) return json({ error: 'ungueltige SteamID' }, 400);
 
-  const apiKey = context.env && context.env.STEAM_API_KEY;
-  if (!apiKey) return json({ error: 'STEAM_API_KEY ist nicht gesetzt' }, 500);
+  const apiKey = env && env.STEAM_API_KEY;
 
   try {
-    const profile = await lookup(steamid, apiKey);
-    return profile ? json(profile) : json({ error: 'Profil nicht gefunden' }, 404);
+    const profil = apiKey ? await mitKey(steamid, apiKey) : await ohneKey(steamid);
+    return profil ? json(profil) : json({ error: 'Profil nicht gefunden' }, 404);
   } catch (e) {
     return json({ error: 'Steam nicht erreichbar' }, 502);
   }
 }
 
-/* ── Netlify Functions (gleiche Logik, anderer Einstiegspunkt) ───────────── */
+/* Für die Tests herausgereicht; stört weder Cloudflare noch Netlify. */
+export { feld, ohneKey, mitKey };
+
+/* ── Cloudflare Pages Functions ──────────────────────────────────────────── */
+export async function onRequest(context) {
+  return behandle(context.request, context.env);
+}
+
+/* ── Netlify Functions ───────────────────────────────────────────────────── */
 export default async (request, context) => {
-  const steamid = new URL(request.url).searchParams.get('steamid') || '';
-  if (!/^\d{17}$/.test(steamid)) return json({ error: 'ungueltige SteamID' }, 400);
-
-  const apiKey = (typeof process !== 'undefined' && process.env)
-    ? process.env.STEAM_API_KEY
-    : (context && context.env && context.env.STEAM_API_KEY);
-  if (!apiKey) return json({ error: 'STEAM_API_KEY ist nicht gesetzt' }, 500);
-
-  try {
-    const profile = await lookup(steamid, apiKey);
-    return profile ? json(profile) : json({ error: 'Profil nicht gefunden' }, 404);
-  } catch (e) {
-    return json({ error: 'Steam nicht erreichbar' }, 502);
-  }
+  const env = (typeof process !== 'undefined' && process.env)
+    ? process.env
+    : (context && context.env);
+  return behandle(request, env);
 };

@@ -406,7 +406,6 @@
       if (el.profileNote) el.profileNote.textContent = 'Beispiel';
       el.verdict.innerHTML = '<b>Vorschau:</b> ' + esc(pick(VERDIKTE, r)) +
         ' <em>Im Spiel steht hier das Profil des beitretenden Spielers.</em>';
-      return;                       /* kein echter Abruf fuer Beispieldaten */
     }
 
     /* Echter Name + Avatar, falls ein Proxy konfiguriert ist. */

@@ -176,20 +176,30 @@ erzeugten Avatar und ein humoristisches Täterprofil (Deckname, Verdachtsstufe,
 Fässer-Affinität …). Alle Werte sind aus der SteamID abgeleitet — derselbe
 Spieler bekommt also immer dasselbe Profil.
 
-Für **echten Steam-Namen und Avatar** brauchst du einen kleinen Server-Proxy,
-weil der Steam-API-Key niemals im Client stehen darf:
+### Echter Steam-Name und Avatar
 
-* `proxy/steam.php` — für Webspace mit PHP
-* `proxy/steam-function.js` — für Cloudflare Pages / Netlify / Vercel
+Statt des erzeugten Musters kann der Screen den **echten Namen und das echte
+Profilbild** zeigen. Dafür braucht es einen kleinen Server-Endpunkt — der
+Browser des Spielers darf Steam nicht direkt fragen, es fehlen die CORS-Header.
 
-Dann in `js/config.js`:
+**Einen API-Key brauchst du dafür nicht.** Ohne Key liest der Endpunkt die
+öffentliche Profilseite als XML (`steamcommunity.com/profiles/<id>?xml=1`), die
+Name und Avatar auch bei „nur Freunde"-Profilen hergibt.
 
-```js
-profileEndpoint: 'proxy/steam.php?steamid={steamid}'
-```
+| Hoster | Datei ablegen als | `profileEndpoint` in `js/config.js` |
+|---|---|---|
+| Cloudflare Pages | `functions/steam-profile.js` | `/steam-profile?steamid={steamid}` |
+| Netlify | `netlify/functions/steam-profile.js` | `/.netlify/functions/steam-profile?steamid={steamid}` |
+| Webspace mit PHP | `proxy/steam.php` | `proxy/steam.php?steamid={steamid}` |
 
-API-Key gibt es kostenlos unter <https://steamcommunity.com/dev/apikey> und er
-gehört in eine Umgebungsvariable `STEAM_API_KEY`, nicht in den Code.
+Vorlage ist `proxy/steam-function.js` bzw. `proxy/steam.php`. Setzt du zusätzlich
+die Umgebungsvariable `STEAM_API_KEY` (kostenlos unter
+<https://steamcommunity.com/dev/apikey>), nimmt der Endpunkt automatisch die
+offizielle Web-API statt der Profilseite. Der Key gehört ausschließlich in die
+Umgebung, niemals in den Code.
+
+Ohne Endpunkt bleibt es beim erzeugten Muster-Avatar — dann `profileEndpoint`
+einfach auf `''` setzen.
 
 ---
 

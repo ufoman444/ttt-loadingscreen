@@ -36,26 +36,31 @@ const TYPEN = {
 const mapPreview = await import(
   pathToFileURL(join(WURZEL, 'proxy', 'map-preview-function.js')).href
 );
+const steamProfil = await import(
+  pathToFileURL(join(WURZEL, 'proxy', 'steam-function.js')).href
+);
+
+/* Beide Endpunkte laufen ueber dieselbe Mechanik. */
+async function reiche(modul, url, res) {
+  try {
+    const antwort = await modul.onRequest({ request: new Request(url.toString()), env: process.env });
+    const text = await antwort.text();
+    res.writeHead(antwort.status, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(text);
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: String(e && e.message) }));
+  }
+}
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
 
-  /* ── Live-Suche ──────────────────────────────────────────────────────── */
-  if (url.pathname === '/map-preview') {
-    try {
-      const antwort = await mapPreview.onRequest({
-        request: new Request(url.toString()),
-        env: process.env
-      });
-      const text = await antwort.text();
-      res.writeHead(antwort.status, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(text);
-    } catch (e) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: String(e && e.message) }));
-    }
-    return;
-  }
+  /* ── Live-Suche nach Map-Bildern ─────────────────────────────────────── */
+  if (url.pathname === '/map-preview') { await reiche(mapPreview, url, res); return; }
+
+  /* ── Echter Steam-Name und Avatar ────────────────────────────────────── */
+  if (url.pathname === '/steam-profile') { await reiche(steamProfil, url, res); return; }
 
   /* ── Statische Dateien ───────────────────────────────────────────────── */
   let pfad = decodeURIComponent(url.pathname);
@@ -84,6 +89,7 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`\nLadebildschirm läuft auf http://localhost:${PORT}`);
   console.log('Live-Suche unter          /map-preview?map=<mapname>');
+  console.log('Steam-Profil unter        /steam-profile?steamid=<id>');
   console.log('\nBeispiel:');
   console.log(`  http://localhost:${PORT}/index.html?steamid=76561198012345678&map=ttt_forest\n`);
 });
