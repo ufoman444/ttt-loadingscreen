@@ -1,0 +1,19 @@
+# Abhaengigkeiten (das Projekt hat keine, npm legt den Ordner trotzdem gern an)
+node_modules/
+
+# Betriebssystem
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editoren
+.vscode/
+.idea/
+*.swp
+
+# Werkzeuge dieser Arbeitsumgebung
+.claude/
+
+# Hinweis: img/maps/ wird bewusst NICHT ignoriert. Wer die Vorschaubilder mit
+# "--download" lokal ablegt, muss sie mitliefern - sonst landen sie beim
+# Deployment nie auf dem Webspace.

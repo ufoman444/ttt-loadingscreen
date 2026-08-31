@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Trouble in Terrorist Town &mdash; Einsatzvorbereitung</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true">
+  <span class="aurora__orb aurora__orb--a"></span>
+  <span class="aurora__orb aurora__orb--b"></span>
+  <span class="aurora__orb aurora__orb--c"></span>
+</div>
+
+<div class="stage">
+
+  <!-- ══════════ KOPFZEILE ══════════ -->
+  <header class="topbar">
+    <div class="brand">
+      <!-- Hover-Gag: das dritte T "verrät" sich -->
+      <div class="brand__mark" aria-hidden="true">
+        <span>T</span><span>T</span><span class="brand__traitor">T</span>
+      </div>
+      <div class="brand__text">
+        <h1 class="brand__name" id="serverName">Trouble in Terrorist Town</h1>
+        <div class="brand__meta">
+          <span class="chip chip--accent" id="gamemode">terrortown</span>
+          <span class="chip" id="slots">&hellip; Slots</span>
+          <span class="chip chip--live"><i></i>Verbindung aktiv</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Musiksteuerung: Stummschalter + Lautstärkeregler -->
+    <div class="audio" id="audio">
+      <button class="audio__mute" id="musicBtn" type="button" aria-pressed="true"
+              title="Musik stummschalten" aria-label="Musik stummschalten">
+        <svg class="audio__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M11 5 6 9H3v6h3l5 4V5Z"/>
+          <path class="audio__wave audio__wave--1" d="M15.5 8.8a4.5 4.5 0 0 1 0 6.4"/>
+          <path class="audio__wave audio__wave--2" d="M18.4 6a8.5 8.5 0 0 1 0 12"/>
+          <path class="audio__cross" d="m17 9.5 5 5m0-5-5 5"/>
+        </svg>
+      </button>
+
+      <div class="audio__slider">
+        <input class="audio__range" id="musicVol" type="range"
+               min="0" max="100" step="1" value="35"
+               aria-label="Lautstärke der Hintergrundmusik">
+      </div>
+
+      <span class="audio__value" id="musicPct">35&thinsp;%</span>
+      <span class="audio__hint" id="musicLabel">Fahrstuhlmusik</span>
+    </div>
+  </header>
+
+  <!-- ══════════ HAUPTBEREICH ══════════ -->
+  <main class="bento">
+
+    <!-- ---------- MAP ---------- -->
+    <section class="card card--map">
+      <div class="card__head">
+        <h2 class="card__title">N&auml;chste Map</h2>
+        <span class="card__note swap">
+          <span class="swap__a" id="mapStatus">wird geladen</span>
+          <span class="swap__b">nicht anfassen</span>
+        </span>
+      </div>
+
+      <figure class="mapcard">
+        <div class="mapcard__frame">
+          <img class="mapcard__img" id="mapImage" alt="" hidden>
+
+          <div class="mapcard__fallback" id="mapFallback">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 20 3 17V4l6 3 6-3 6 3v13l-6-3-6 3Z"/><path d="M9 7v13M15 4v13"/>
+            </svg>
+            <p>Kein Vorschaubild hinterlegt</p>
+            <small>Vermutlich hat ein Traitor es mitgenommen.</small>
+          </div>
+
+          <!-- schief geklebter Sticker -->
+          <span class="sticker" aria-hidden="true">
+            <b>100&nbsp;% traitorfrei</b>
+            <em>*keinerlei Garantie</em>
+          </span>
+        </div>
+
+        <figcaption class="mapcard__caption">
+          <span class="mapcard__label">Schauplatz</span>
+          <span class="mapcard__name" id="mapName">wird ermittelt&hellip;</span>
+          <span class="mapcard__hint" id="mapHint">&nbsp;</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- ---------- REGELN ---------- -->
+    <section class="card card--rules">
+      <div class="card__head">
+        <h2 class="card__title">Serverregeln</h2>
+        <span class="card__note swap">
+          <span class="swap__a">verbindlich</span>
+          <span class="swap__b">eher Richtlinien</span>
+        </span>
+      </div>
+      <ol class="rules" id="rules"></ol>
+      <p class="rules__foot">Alles Weitere regelt der Mob.</p>
+    </section>
+
+    <!-- ---------- SPIELERPROFIL ---------- -->
+    <section class="card card--profile">
+      <div class="card__head">
+        <h2 class="card__title">Dein Profil</h2>
+        <span class="card__note swap">
+          <span class="swap__a">live</span>
+          <span class="swap__b">wir sehen dich</span>
+        </span>
+      </div>
+
+      <div class="profile">
+        <div class="profile__id">
+          <div class="profile__avatar">
+            <img id="avatarImg" alt="" hidden>
+            <canvas id="avatarCanvas" width="128" height="128" aria-hidden="true"></canvas>
+            <span class="profile__ribbon" aria-hidden="true">verd&auml;chtig</span>
+          </div>
+          <div class="profile__names">
+            <strong class="profile__name" id="playerName">Unbekannter Terrorist</strong>
+            <span class="profile__code" id="playerCode">&nbsp;</span>
+            <a class="profile__steam" id="steamLink" href="#" target="_blank" rel="noopener">
+              <span id="steamId">Keine SteamID &uuml;bergeben</span>
+            </a>
+          </div>
+        </div>
+
+        <ul class="stats" id="stats"></ul>
+
+        <p class="profile__verdict" id="verdict">Auswertung l&auml;uft&hellip;</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══════════ LADEBALKEN ══════════ -->
+  <footer class="loader">
+    <div class="loader__line">
+      <span class="loader__phase" id="phase">Verbindung wird aufgebaut</span>
+      <span class="loader__pct"><b id="pct">0</b><i>%</i></span>
+    </div>
+
+    <div class="barwrap">
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="bar">
+        <div class="bar__ghost" id="barGhost"></div>
+        <div class="bar__fill" id="barFill"></div>
+      </div>
+
+      <!-- Das Fass rollt mit dem Fortschritt mit. Regel 1 lässt grüßen. -->
+      <span class="barrel" id="barrel" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none">
+          <ellipse cx="16" cy="16" rx="13" ry="13" fill="url(#bg1)" stroke="#0a1f17" stroke-width="1.5"/>
+          <path d="M3.6 12h24.8M3.6 20h24.8" stroke="#0a1f17" stroke-width="2" opacity=".55"/>
+          <path d="M16 3.2v25.6" stroke="#0a1f17" stroke-width="1.6" opacity=".35"/>
+          <circle cx="16" cy="16" r="3" fill="#0a1f17" opacity=".35"/>
+          <defs>
+            <linearGradient id="bg1" x1="3" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#a3e635"/><stop offset="1" stop-color="#059669"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </span>
+    </div>
+
+    <div class="loader__line loader__line--sub">
+      <span class="loader__status" id="status">Warte auf Server&hellip;</span>
+      <span class="loader__files" id="files"></span>
+    </div>
+
+    <div class="tips">
+      <span class="tips__tag">Tipp</span>
+      <span class="tips__text" id="tip">&nbsp;</span>
+    </div>
+  </footer>
+
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/logger.js"></script>
+<script src="js/util.js"></script>
+<script src="js/music.js"></script>
+<script src="js/loading.js"></script>
+</body>
+</html>
