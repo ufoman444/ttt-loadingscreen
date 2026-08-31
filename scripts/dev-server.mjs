@@ -40,12 +40,22 @@ const steamProfil = await import(
   pathToFileURL(join(WURZEL, 'proxy', 'steam-function.js')).href
 );
 
-/* Beide Endpunkte laufen ueber dieselbe Mechanik. */
-async function reiche(modul, url, res) {
+/* Beide Endpunkte laufen ueber dieselbe Mechanik.
+   Die Antwortkopfzeilen werden unveraendert durchgereicht — sonst waere dieser
+   Server kein ehrlicher Stellvertreter fuer Cloudflare oder Netlify, und
+   gerade die CORS-Kopfzeilen liessen sich hier nicht pruefen. */
+async function reiche(modul, req, url, res) {
   try {
-    const antwort = await modul.onRequest({ request: new Request(url.toString()), env: process.env });
+    const antwort = await modul.onRequest({
+      request: new Request(url.toString(), { method: req.method, headers: req.headers }),
+      env: process.env
+    });
+
+    const kopf = {};
+    antwort.headers.forEach((wert, name) => { kopf[name] = wert; });
+
     const text = await antwort.text();
-    res.writeHead(antwort.status, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.writeHead(antwort.status, kopf);
     res.end(text);
   } catch (e) {
     res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -57,10 +67,10 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
 
   /* ── Live-Suche nach Map-Bildern ─────────────────────────────────────── */
-  if (url.pathname === '/map-preview') { await reiche(mapPreview, url, res); return; }
+  if (url.pathname === '/map-preview') { await reiche(mapPreview, req, url, res); return; }
 
   /* ── Echter Steam-Name und Avatar ────────────────────────────────────── */
-  if (url.pathname === '/steam-profile') { await reiche(steamProfil, url, res); return; }
+  if (url.pathname === '/steam-profile') { await reiche(steamProfil, req, url, res); return; }
 
   /* ── Statische Dateien ───────────────────────────────────────────────── */
   let pfad = decodeURIComponent(url.pathname);

@@ -71,9 +71,15 @@ window.TTT_CONFIG = {
         proxy/map-preview-function.js   → '/map-preview?map={map}'
                                           (Cloudflare Pages / Netlify)
 
-     Leer lassen schaltet die Live-Suche ab; dann bleibt es beim Index.
+     AUF GITHUB PAGES: GitHub Pages fuehrt keinen Code aus. Trag hier die
+     Adresse deines Helfer-Workers ein (siehe README, Abschnitt GitHub Pages):
+
+        mapLookupEndpoint: 'https://ttt-helfer.deinname.workers.dev/map-preview?map={map}'
+
+     Leer lassen: dann bleibt es beim Index aus js/maps.json, der ohnehin alle
+     Maps deiner Sammlung abdeckt.
      ───────────────────────────────────────────────────────────────────────── */
-  mapLookupEndpoint: '/map-preview?map={map}',
+  mapLookupEndpoint: '',
   mapImageFolder: 'img/maps/',      // automatische Suche: <folder><mapname>.jpg
   mapImageExtensions: ['jpg', 'png', 'webp'],
 
@@ -113,9 +119,33 @@ window.TTT_CONFIG = {
         proxy/steam.php          → 'proxy/steam.php?steamid={steamid}'
 
      Erwartete Antwort: {"name":"...","avatar":"https://..."}
+
+     AUF GITHUB PAGES: Ein Helfer-Worker uebernimmt das. Einmal einrichten
+     (etwa fuenf Minuten, kostenlos, kein API-Key), dann laeuft es dauerhaft
+     fuer jeden Spieler — siehe README, Abschnitt GitHub Pages:
+
+        profileEndpoint: 'https://ttt-helfer.deinname.workers.dev/steam-profile?steamid={steamid}'
+
      Leer lassen: dann bleibt es beim erzeugten Muster-Avatar.
      ───────────────────────────────────────────────────────────────────────── */
-  profileEndpoint: '/steam-profile?steamid={steamid}',
+  profileEndpoint: '',
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     5b) OPTIONAL: PROFILE VORAB HOLEN
+
+     Nur interessant, wenn du keinen Helfer-Worker einrichten willst oder
+     kannst. Dann lassen sich Profile fuer bekannte Stammspieler vorab holen:
+
+         node scripts/fetch-players.mjs 76561198060265210 76561198...
+
+     Das schreibt js/players.json. Wer darin steht, bekommt seinen echten
+     Steam-Namen und Avatar ohne jede Wartezeit; alle anderen das erzeugte
+     Muster. Mit einem Worker brauchst du das nicht — der deckt jeden Spieler
+     ab, auch den, der heute zum ersten Mal verbindet.
+
+     Auf '' setzen schaltet die Datei ab.
+     ───────────────────────────────────────────────────────────────────────── */
+  playersIndex: 'js/players.json',
 
   /* Nur für die Vorschau im Browser: Ruft man die Seite ohne `?steamid=`
      auf, bliebe die Profilkarte leer. Meldet sich nach vier Sekunden keine

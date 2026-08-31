@@ -21,6 +21,13 @@ const PREFIXE = ['ttt', 'gm', 'de', 'cs', 'zs', 'ph', 'dm', 'rp', 'mu', 'ba', 'a
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
+/* Liegt die Seite auf einem anderen Host als dieses Skript - etwa auf GitHub
+   Pages -, verwirft der Browser die Antwort ohne diese Kopfzeile. Herausgegeben
+   werden nur oeffentliche Steam-Daten, deshalb ist die Freigabe unbedenklich.
+   Auf die eigene Seite beschraenken: ALLOWED_ORIGIN als Umgebungsvariable. */
+header('Access-Control-Allow-Origin: ' . (getenv('ALLOWED_ORIGIN') ?: '*'));
+header('Vary: Origin');
+
 /* ── Eingabe prüfen ────────────────────────────────────────────────────── */
 $map = strtolower(trim((string) ($_GET['map'] ?? '')));
 if (!preg_match('/^[a-z0-9][a-z0-9_\-]{2,63}$/', $map)) {

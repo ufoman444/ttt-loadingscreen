@@ -25,6 +25,13 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: public, max-age=600');
 header('X-Content-Type-Options: nosniff');
 
+/* Liegt die Seite auf einem anderen Host als dieses Skript - etwa auf GitHub
+   Pages -, verwirft der Browser die Antwort ohne diese Kopfzeile. Herausgegeben
+   werden nur oeffentliche Steam-Daten, deshalb ist die Freigabe unbedenklich.
+   Auf die eigene Seite beschraenken: ALLOWED_ORIGIN als Umgebungsvariable. */
+header('Access-Control-Allow-Origin: ' . (getenv('ALLOWED_ORIGIN') ?: '*'));
+header('Vary: Origin');
+
 /* Ein Key ist optional. Ist keiner gesetzt, geht es ueber die oeffentliche
    Profilseite als XML - die liefert Name und Avatar ohne jede Anmeldung.
    Der Key darf ausschliesslich aus der Umgebung kommen, niemals aus dem Code. */

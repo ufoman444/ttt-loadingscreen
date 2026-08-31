@@ -62,7 +62,8 @@
     imageRun: 0,
     lookupTried: false,
     indexDone: false,
-    playerKnown: false
+    playerKnown: false,
+    playerId: ''
   };
 
   /* ══════════════════════════════════════════════════════════════════════
@@ -390,6 +391,7 @@
 
     var seed = hash(id);
     var r = rng(seed);
+    state.playerId = id;
 
     el.playerName.textContent = 'Spieler #' + id.substring(id.length - 4);
     el.playerCode.textContent = 'Deckname: ' + pick(ADJEKTIVE, r) + ' ' + pick(NOMEN, r);
@@ -401,6 +403,10 @@
     renderStats(seed);
     state.playerKnown = !istBeispiel;
 
+    /* Vorab geholtes echtes Profil (js/players.json) — der Weg, der auch auf
+       einem rein statischen Hoster funktioniert. */
+    uebernimmProfil(id);
+
     if (istBeispiel) {
       el.playerName.textContent = 'Beispielspieler';
       if (el.profileNote) el.profileNote.textContent = 'Beispiel';
@@ -410,6 +416,59 @@
 
     /* Echter Name + Avatar, falls ein Proxy konfiguriert ist. */
     if (CFG.profileEndpoint) loadRealProfile(id);
+  }
+
+  /**
+   * Setzt Name und Avatar aus dem vorab geholten Spieler-Index, sofern die
+   * SteamID dort steht.
+   * @param {string} id SteamID64
+   * @returns {boolean} true, wenn ein Eintrag gefunden wurde
+   */
+  function uebernimmProfil(id) {
+    var eintrag = playerIndex && playerIndex.spieler && playerIndex.spieler[id];
+    if (!eintrag) return false;
+
+    if (eintrag.name) el.playerName.textContent = eintrag.name;
+    if (eintrag.avatar) {
+      el.avatarImg.src = eintrag.avatar;      /* Bilder brauchen kein CORS */
+      el.avatarImg.hidden = false;
+    }
+    LOG.info('Profil aus dem Index:', eintrag.name);
+    return true;
+  }
+
+  /* Wie der Map-Index kommt auch dieser asynchron. */
+  var playerIndex = null;
+
+  function loadPlayerIndex() {
+    var url = CFG.playersIndex;
+    if (!url) return;
+
+    try {
+      var xhr = new global.XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.timeout = 5000;
+      xhr.onload = function () {
+        if (xhr.status < 200 || xhr.status >= 300) {
+          LOG.info('Kein Spieler-Index unter', url, '(HTTP ' + xhr.status + ')');
+          return;
+        }
+        try {
+          playerIndex = JSON.parse(xhr.responseText);
+          LOG.info('Spieler-Index geladen:', (playerIndex && playerIndex.anzahl) || 0, 'Profile');
+        } catch (e) {
+          LOG.error('Spieler-Index ist kein gueltiges JSON:', url);
+          return;
+        }
+        /* Steht der aktuelle Spieler drin, jetzt nachtragen. */
+        if (state.playerId) uebernimmProfil(state.playerId);
+      };
+      xhr.onerror   = function () { LOG.warning('Spieler-Index nicht erreichbar:', url); };
+      xhr.ontimeout = function () { LOG.warning('Spieler-Index hat zu lange gebraucht.'); };
+      xhr.send();
+    } catch (e) {
+      LOG.error('Spieler-Index konnte nicht geladen werden:', e && e.message);
+    }
   }
 
   function loadRealProfile(id) {
@@ -619,6 +678,7 @@
     startTips();
     initMusic();
     loadMapIndex();
+    loadPlayerIndex();
 
     /* Fallback aus der Konfiguration, bis die Engine sich meldet. */
     if (CFG.serverName) el.serverName.textContent = CFG.serverName;

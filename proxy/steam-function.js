@@ -79,30 +79,55 @@ async function mitKey(steamid, apiKey) {
   };
 }
 
-function json(body, status) {
+/* ── CORS ─────────────────────────────────────────────────────────────────
+   Liegt die Seite woanders als dieser Endpunkt — etwa auf GitHub Pages —
+   ist jede Anfrage hierher fremdherkunft (cross-origin). Ohne diese Kopfzeile
+   verwirft der Browser die Antwort, obwohl der Server sie sauber geliefert hat.
+
+   Standardmaessig fuer alle Herkuenfte freigegeben: Der Endpunkt gibt nur
+   oeffentliche Steam-Daten heraus, kennt keine Sitzung und keine Geheimnisse.
+   Wer ihn auf die eigene Seite beschraenken will, setzt die Umgebungsvariable
+   ALLOWED_ORIGIN, z. B. https://deinname.github.io
+   ───────────────────────────────────────────────────────────────────────── */
+function corsKopf(env) {
+  const erlaubt = (env && env.ALLOWED_ORIGIN) || '*';
+  return {
+    'Access-Control-Allow-Origin': erlaubt,
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Vary': 'Origin'
+  };
+}
+
+function json(body, status, env) {
   return new Response(JSON.stringify(body), {
     status: status || 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': `public, max-age=${status && status !== 200 ? 600 : CACHE_SECONDS}`,
-      'X-Content-Type-Options': 'nosniff'
+      'X-Content-Type-Options': 'nosniff',
+      ...corsKopf(env)
     }
   });
 }
 
 async function behandle(request, env) {
+  /* Vorabfrage des Browsers bei fremder Herkunft. */
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsKopf(env) });
+  }
+
   const steamid = (new URL(request.url).searchParams.get('steamid') || '').trim();
 
   /* Eine SteamID64 hat genau 17 Ziffern. Alles andere fliegt raus. */
-  if (!/^\d{17}$/.test(steamid)) return json({ error: 'ungueltige SteamID' }, 400);
+  if (!/^\d{17}$/.test(steamid)) return json({ error: 'ungueltige SteamID' }, 400, env);
 
   const apiKey = env && env.STEAM_API_KEY;
 
   try {
     const profil = apiKey ? await mitKey(steamid, apiKey) : await ohneKey(steamid);
-    return profil ? json(profil) : json({ error: 'Profil nicht gefunden' }, 404);
+    return profil ? json(profil, 200, env) : json({ error: 'Profil nicht gefunden' }, 404, env);
   } catch (e) {
-    return json({ error: 'Steam nicht erreichbar' }, 502);
+    return json({ error: 'Steam nicht erreichbar' }, 502, env);
   }
 }
 

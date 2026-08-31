@@ -288,6 +288,11 @@ body{
   grid-template-columns:1.28fr 1.04fr .9fr;
   gap:1.4rem;
   min-height:0;
+  /* Jede Karte so hoch wie ihr Inhalt — nicht auf die Resthoehe gestreckt.
+     Der uebrige Platz verteilt sich gleichmaessig ueber und unter dem Block,
+     statt als Loch ueber der Fusszeile zu stehen. */
+  align-items:start;
+  align-self:center;
 }
 
 .card{
@@ -319,20 +324,16 @@ body{
 }
 
 /* ── Map-Karte ─────────────────────────────────────────────────────────── */
-.mapcard{
-  display:flex; flex-direction:column; flex:1; min-height:0;
-  justify-content:center;          /* Bild + Beschriftung mittig statt oben angeklebt */
-}
+.mapcard{ display:flex; flex-direction:column; }
 
 .mapcard__frame{
   position:relative; overflow:hidden;
   /* Fester Bildausschnitt statt "so hoch wie die Spalte". Ohne diese Grenze
      zieht object-fit:cover das Vorschaubild in eine hohe, schmale Fläche und
      zoomt es dabei bis zur Unkenntlichkeit hinein. */
-  flex:0 1 auto;
   width:100%;
   aspect-ratio:16 / 9;
-  max-height:min(100%, 44vh);
+  max-height:34vh;
   border-radius:var(--r-md);
   border:1px solid var(--border);
   background:
@@ -373,13 +374,12 @@ body{
 .mapcard__hint{ font-size:.85rem; color:var(--muted); }
 
 /* ── Regeln ────────────────────────────────────────────────────────────── */
-.rules{ list-style:none; counter-reset:rule; display:flex; flex-direction:column; gap:.5rem; flex:1; min-height:0; }
+.rules{ list-style:none; counter-reset:rule; display:flex; flex-direction:column; gap:.5rem; }
 
 .rules li{
   position:relative;
   counter-increment:rule;
-  flex:1 1 0; min-height:0;          /* Regeln füllen die Spaltenhöhe gleichmäßig */
-  display:grid; grid-template-columns:auto 1fr; gap:.85rem; align-items:center; align-content:center;
+  display:grid; grid-template-columns:auto 1fr; gap:.85rem; align-items:center;
   padding:.7rem .9rem;
   border-radius:var(--r-md);
   border:1px solid var(--border);
@@ -429,7 +429,7 @@ body{
 }
 
 /* ── Spielerprofil ─────────────────────────────────────────────────────── */
-.profile{ display:flex; flex-direction:column; gap:1.15rem; flex:1; min-height:0; }
+.profile{ display:flex; flex-direction:column; gap:1.15rem; }
 
 .profile__id{ display:grid; grid-template-columns:auto 1fr; gap:1rem; align-items:center; }
 
@@ -481,7 +481,7 @@ body{
 }
 
 .profile__verdict{
-  margin-top:auto;
+  margin-top:.15rem;
   padding:.8rem .9rem;
   border-radius:var(--r-md);
   border:1px solid var(--border);
@@ -553,18 +553,23 @@ body{
 @keyframes tipSwap{ from{ opacity:0; transform:translateY(6px) } to{ opacity:1; transform:none } }
 
 /* ══════════ RESPONSIV ══════════ */
-@media (max-aspect-ratio: 13/10){
-  .bento{ grid-template-columns:1fr 1fr; }
-  .card--map{ grid-column:1 / -1; }
-  .mapcard__frame{ max-height:38vh; }
-  body{ overflow:auto; }
-  .stage{ height:auto; min-height:100vh; }
+/* Die drei Karten bleiben nebeneinander, solange die Breite es zulaesst.
+   Frueher stand hier eine Regel nach Seitenverhaeltnis, die die Map bei
+   hochformatigen Fenstern ueber die volle Breite gezogen hat — dann rutschten
+   Regeln und Profil darunter und das Vorschaubild beherrschte die Seite. */
+@media (max-width: 1100px){
+  .bento{ grid-template-columns:1.15fr 1fr .95fr; gap:1rem; }
+  .stage{ padding:1.8rem 1.8rem 1.5rem; gap:1.2rem; }
+  .card{ padding:1.1rem 1.1rem 1.2rem; }
 }
-@media (max-width: 760px){
-  .stage{ padding:1.6rem 1.4rem; }
+/* Erst wenn drei Spalten wirklich nicht mehr lesbar waeren, wird gestapelt. */
+@media (max-width: 700px){
+  .stage{ padding:1.4rem 1.2rem; height:auto; min-height:100vh; }
   .bento{ grid-template-columns:1fr; }
+  .mapcard__frame{ max-height:30vh; }
   .brand__name{ max-width:100%; white-space:normal; }
   .topbar{ flex-wrap:wrap; gap:1rem; }
+  body{ overflow:auto; }
 }
 
 @media (prefers-reduced-motion: reduce){

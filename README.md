@@ -236,6 +236,96 @@ hochladen, fertig. Die spätere URL trägst du in `sv_loadingurl` ein.
 
 ---
 
+## 3b. GitHub Pages im Detail
+
+GitHub Pages ist der bequemste kostenlose Weg — hat aber eine harte Grenze:
+**es führt keinen Code aus.** Das ist relevant, weil Steam sich vom Browser aus
+grundsätzlich nicht abfragen lässt.
+
+### Was ohne alles funktioniert
+
+| Funktion | Läuft auf GitHub Pages |
+|---|---|
+| Ladebalken mit echtem Download-Fortschritt | ja |
+| Serverregeln | ja |
+| Fahrstuhlmusik, Lautstärkeregler, Stummschalter | ja |
+| SteamID, Profil-Link, erzeugter Avatar, Täterprofil | ja |
+| Map-Vorschaubild aus `js/maps.json` | ja |
+| Nächtliche Auffrischung des Map-Index | ja, per GitHub Actions |
+
+Damit ist alles abgedeckt, was die URL-Parameter `?steamid=%s&map=%m` und die
+Engine-Callbacks liefern. Für die Maps deiner Workshop-Sammlung reicht der
+Index vollständig aus.
+
+### Was einen kleinen Helfer braucht
+
+Zwei Dinge holen ihre Daten live bei Steam:
+
+* **echter Steam-Name und Avatar**
+* **Live-Suche** nach Bildern für Maps, die nicht in deiner Sammlung stehen
+
+Nachgemessen im Browser — alles blockiert:
+
+| Versuch | Ergebnis |
+|---|---|
+| `api.steampowered.com` | blockiert (keine CORS-Header) |
+| `steamcommunity.com/profiles/…?xml=1` | blockiert |
+| `steamcommunity.com/workshop/browse` | blockiert |
+| öffentliche CORS-Vermittler (allorigins, codetabs, cors.lol, whateverorigin) | blockiert |
+| `corsproxy.io` | antwortet, verlangt aber inzwischen einen Schlüssel |
+
+Es gibt also keinen Trick, der ohne eigenen Endpunkt auskommt. Der kleinste
+mögliche ist ein Cloudflare Worker: kostenlos, ohne API-Key, einmal einrichten.
+
+### Helfer einrichten (etwa fünf Minuten)
+
+```bash
+npm run build:worker
+```
+
+Das erzeugt `dist/worker.js` — eine einzelne Datei, zusammengebaut aus dem
+Code unter `proxy/`, damit es keine zweite Fassung gibt, die veraltet.
+
+1. <https://dash.cloudflare.com> → **Compute (Workers)** → **Create** →
+   *Start from Hello World* → **Deploy**
+2. **Edit code**, den Inhalt von `dist/worker.js` komplett einfügen, **Deploy**
+3. Die Adresse notieren, etwa `https://ttt-helfer.deinname.workers.dev`
+4. In `js/config.js` eintragen:
+
+```js
+profileEndpoint:   'https://ttt-helfer.deinname.workers.dev/steam-profile?steamid={steamid}',
+mapLookupEndpoint: 'https://ttt-helfer.deinname.workers.dev/map-preview?map={map}',
+```
+
+Ab jetzt bekommt **jeder** Spieler seinen echten Namen und Avatar — auch wer
+heute zum ersten Mal verbindet. Nichts muss von Hand gepflegt werden.
+
+Optional als Variable im Worker (Settings → Variables):
+
+| Variable | Wirkung |
+|---|---|
+| `ALLOWED_ORIGIN` | beschränkt den Zugriff auf deine Seite, z. B. `https://deinname.github.io` |
+| `STEAM_API_KEY` | nutzt die offizielle Web-API statt der öffentlichen Profilseite |
+
+Beide sind freiwillig; ohne sie funktioniert alles genauso.
+
+### Seite veröffentlichen
+
+1. Repository → **Settings** → **Pages** → Branch `main`, Ordner `/ (root)`
+2. Nach ein bis zwei Minuten liegt die Seite unter
+   `https://deinname.github.io/ttt-loadingscreen/`
+3. In die `server.cfg`:
+
+```
+sv_loadingurl "https://deinname.github.io/ttt-loadingscreen/index.html?steamid=%s&map=%m"
+```
+
+> Auf dem Gratis-Tarif muss das Repository öffentlich sein. Der Ladebildschirm
+> enthält keine Geheimnisse — der API-Key liegt, falls du überhaupt einen
+> nutzt, ausschließlich im Worker.
+
+---
+
 ## 4. Lokal testen
 
 ```bash

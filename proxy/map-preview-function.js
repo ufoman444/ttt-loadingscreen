@@ -109,24 +109,49 @@ async function suche(map) {
   return bester ? { ...bester, guete: besteGuete } : null;
 }
 
-function json(body, status) {
+/* ── CORS ─────────────────────────────────────────────────────────────────
+   Liegt die Seite woanders als dieser Endpunkt — etwa auf GitHub Pages —
+   ist jede Anfrage hierher fremdherkunft (cross-origin). Ohne diese Kopfzeile
+   verwirft der Browser die Antwort, obwohl der Server sie sauber geliefert hat.
+
+   Standardmaessig fuer alle Herkuenfte freigegeben: Der Endpunkt gibt nur
+   oeffentliche Steam-Daten heraus, kennt keine Sitzung und keine Geheimnisse.
+   Wer ihn auf die eigene Seite beschraenken will, setzt die Umgebungsvariable
+   ALLOWED_ORIGIN, z. B. https://deinname.github.io
+   ───────────────────────────────────────────────────────────────────────── */
+function corsKopf(env) {
+  const erlaubt = (env && env.ALLOWED_ORIGIN) || '*';
+  return {
+    'Access-Control-Allow-Origin': erlaubt,
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Vary': 'Origin'
+  };
+}
+
+function json(body, status, env) {
   return new Response(JSON.stringify(body), {
     status: status || 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       /* Auch Fehlschläge cachen — sonst sucht jeder Beitritt erneut vergeblich. */
       'Cache-Control': `public, max-age=${status && status !== 200 ? 3600 : CACHE_SECONDS}`,
-      'X-Content-Type-Options': 'nosniff'
+      'X-Content-Type-Options': 'nosniff',
+      ...corsKopf(env)
     }
   });
 }
 
 async function behandle(request, env) {
+  /* Vorabfrage des Browsers bei fremder Herkunft. */
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsKopf(env) });
+  }
+
   const map = (new URL(request.url).searchParams.get('map') || '').toLowerCase().trim();
 
   /* Mapnamen sind kurz und harmlos — alles andere fliegt raus. */
   if (!/^[a-z0-9][a-z0-9_\-]{2,63}$/.test(map)) {
-    return json({ error: 'ungueltiger Mapname' }, 400);
+    return json({ error: 'ungueltiger Mapname' }, 400, env);
   }
 
   /* Cloudflare: Antwort im Edge-Cache ablegen. */
@@ -141,10 +166,10 @@ async function behandle(request, env) {
   try {
     const fund = await suche(map);
     antwort = fund
-      ? json({ img: fund.img, titel: fund.titel, id: fund.id, guete: fund.guete })
-      : json({ error: 'nichts gefunden' }, 404);
+      ? json({ img: fund.img, titel: fund.titel, id: fund.id, guete: fund.guete }, 200, env)
+      : json({ error: 'nichts gefunden' }, 404, env);
   } catch (e) {
-    antwort = json({ error: 'Workshop nicht erreichbar' }, 502);
+    antwort = json({ error: 'Workshop nicht erreichbar' }, 502, env);
   }
 
   if (cache && antwort.status === 200) {

@@ -77,6 +77,40 @@ bleiben, sonst beansprucht wieder ein Addon eine fremde Map.
 
 ---
 
+## `build-worker.mjs` — Helfer-Worker bauen
+
+```bash
+npm run build:worker
+```
+
+Erzeugt `dist/worker.js` — eine einzelne Datei zum Einfügen ins
+Cloudflare-Dashboard. Sie beantwortet `/steam-profile` und `/map-preview` und
+ist damit der Weg, echte Steam-Profile und die Live-Suche auch auf GitHub
+Pages zu bekommen, das selbst keinen Code ausführt.
+
+Die Datei wird aus `proxy/steam-function.js` und `proxy/map-preview-function.js`
+zusammengebaut, jede in einem eigenen Gültigkeitsbereich. So gibt es keine
+zweite Fassung der Logik, die irgendwann von der ersten abweicht. Nach jeder
+Änderung an den Quellen neu bauen; `tests/worker.test.mjs` prüft das Ergebnis.
+
+---
+
+## `fetch-players.mjs` — Profile vorab holen (optional)
+
+```bash
+node scripts/fetch-players.mjs 76561198060265210 76561198012345678
+node scripts/fetch-players.mjs --datei stammspieler.txt
+```
+
+Schreibt `js/players.json` mit Name und Avatar. Nur interessant, wenn du
+keinen Worker einrichten willst: Dann bekommen wenigstens die dort
+eingetragenen Spieler ihr echtes Profil. Mit Worker ist das überflüssig — der
+deckt jeden ab, auch neue Spieler.
+
+Kein API-Key nötig. Ohne `--ersetzen` wächst die Liste bei jedem Lauf.
+
+---
+
 ## `dev-server.mjs` — lokal testen
 
 ```bash
