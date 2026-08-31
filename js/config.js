@@ -111,6 +111,16 @@ window.TTT_CONFIG = {
      ───────────────────────────────────────────────────────────────────────── */
   profileEndpoint: '',
 
+  /* Nur für die Vorschau im Browser: Ruft man die Seite ohne `?steamid=`
+     auf, bliebe die Profilkarte leer. Meldet sich nach vier Sekunden keine
+     Spiel-Engine, setzt der Ladebildschirm stattdessen diese ID ein und
+     kennzeichnet die Karte als Beispiel.
+
+     Trag hier deine eigene SteamID64 ein, um dein Profil zu sehen.
+     Im laufenden Spiel spielt der Wert keine Rolle — dort kommt die echte
+     ID immer über GameDetails. Leer lassen schaltet das Beispiel ab. */
+  demoSteamId: '76561198060265210',
+
   /* ─────────────────────────────────────────────────────────────────────────
      6) TIPPS (rotierender Ticker unten)
      ───────────────────────────────────────────────────────────────────────── */

@@ -35,7 +35,7 @@
     avatarImg: $('avatarImg'),
     playerName: $('playerName'), playerCode: $('playerCode'),
     steamLink: $('steamLink'), steamId: $('steamId'),
-    stats: $('stats'), verdict: $('verdict'),
+    stats: $('stats'), verdict: $('verdict'), profileNote: $('profileNote'),
     phase: $('phase'), pct: $('pct'), bar: $('bar'), barFill: $('barFill'),
     barGhost: $('barGhost'), barrel: $('barrel'),
     status: $('status'), files: $('files'), tip: $('tip'),
@@ -61,7 +61,8 @@
     mapImageFound: false,
     imageRun: 0,
     lookupTried: false,
-    indexDone: false
+    indexDone: false,
+    playerKnown: false
   };
 
   /* ══════════════════════════════════════════════════════════════════════
@@ -365,7 +366,13 @@
     }, 120);
   }
 
-  function setPlayer(steamid64) {
+  /**
+   * Fuellt die Profilkarte. `istBeispiel` kennzeichnet Vorschaudaten, damit
+   * niemand sie fuer echt haelt.
+   * @param {string|number} steamid64
+   * @param {boolean} [istBeispiel]
+   */
+  function setPlayer(steamid64, istBeispiel) {
     var id = String(steamid64 || '').replace(/[^0-9]/g, '');
 
     if (!id || id.length < 5) {
@@ -392,6 +399,15 @@
 
     drawIdenticon(seed);
     renderStats(seed);
+    state.playerKnown = !istBeispiel;
+
+    if (istBeispiel) {
+      el.playerName.textContent = 'Beispielspieler';
+      if (el.profileNote) el.profileNote.textContent = 'Beispiel';
+      el.verdict.innerHTML = '<b>Vorschau:</b> ' + esc(pick(VERDIKTE, r)) +
+        ' <em>Im Spiel steht hier das Profil des beitretenden Spielers.</em>';
+      return;                       /* kein echter Abruf fuer Beispieldaten */
+    }
 
     /* Echter Name + Avatar, falls ein Proxy konfiguriert ist. */
     if (CFG.profileEndpoint) loadRealProfile(id);
@@ -623,6 +639,13 @@
       if (!state.engineSpoke) {
         state.demo = true;
         LOG.info('Keine Engine gefunden — Vorschaumodus.');
+
+        /* Ohne ?steamid= bliebe die Profilkarte leer. Fuer die Vorschau
+           setzen wir ein Beispiel ein, deutlich als solches markiert. */
+        if (!state.playerKnown && CFG.demoSteamId) {
+          LOG.info('Beispielprofil fuer die Vorschau:', CFG.demoSteamId);
+          setPlayer(CFG.demoSteamId, true);
+        }
         el.status.textContent = 'Vorschaumodus (kein Server verbunden)';
       }
     }, 4000);

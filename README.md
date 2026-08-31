@@ -243,9 +243,14 @@ http://localhost:8123/index.html?steamid=76561198012345678&map=ttt_minecraft_b5
 ```
 
 Meldet sich innerhalb von 4 Sekunden keine Engine, schaltet die Seite in einen
-**Vorschaumodus** und simuliert den Ladefortschritt, damit du alles ansehen
-kannst. Sobald ein echter GMod-Callback kommt, übernimmt sofort wieder der
-echte Fortschritt.
+**Vorschaumodus**: Der Ladefortschritt wird simuliert, und die Profilkarte
+zeigt statt einer leeren Fläche ein Beispielprofil — sichtbar als „Beispiel"
+gekennzeichnet. Welche SteamID dafür verwendet wird, steht in `js/config.js`
+unter `demoSteamId`; trag dort deine eigene ein, um dein Profil zu sehen.
+
+Sobald ein echter GMod-Callback kommt, übernimmt sofort wieder der echte
+Fortschritt und das echte Profil. Im Spiel spielt `demoSteamId` also nie eine
+Rolle.
 
 ---
 
