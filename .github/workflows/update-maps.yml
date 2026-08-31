@@ -1,0 +1,68 @@
+# ══════════════════════════════════════════════════════════════════════════
+# MAP-INDEX AUTOMATISCH AKTUELL HALTEN
+#
+# Liest die Workshop-Sammlung jede Nacht neu aus und aktualisiert js/maps.json.
+# Nimmst du eine Map in die Sammlung auf, hat sie am nächsten Tag von selbst
+# ein Vorschaubild — ohne dass du irgendetwas tust.
+#
+# EINRICHTEN
+#   1. Repository → Settings → Secrets and variables → Actions → Variables
+#   2. Neue Variable  COLLECTION_ID  mit deiner Sammlungs-ID anlegen,
+#      z. B. 1509773512. Mehrere durch Leerzeichen trennen.
+#   3. Unter Settings → Actions → General → Workflow permissions
+#      "Read and write permissions" aktivieren, damit der Commit klappt.
+#
+# Manuell auslösen geht jederzeit über den Reiter "Actions".
+# ══════════════════════════════════════════════════════════════════════════
+
+name: Map-Index aktualisieren
+
+on:
+  schedule:
+    - cron: '17 4 * * *'      # täglich 04:17 UTC
+  workflow_dispatch:           # und auf Knopfdruck
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Node einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Sammlungs-ID prüfen
+        run: |
+          if [ -z "${{ vars.COLLECTION_ID }}" ]; then
+            echo "::error::Die Variable COLLECTION_ID ist nicht gesetzt."
+            echo "Anlegen unter: Settings → Secrets and variables → Actions → Variables"
+            exit 1
+          fi
+
+      - name: Index neu erzeugen
+        run: node scripts/fetch-workshop-maps.mjs ${{ vars.COLLECTION_ID }}
+
+      - name: Index prüfen
+        # Schlägt nur bei nicht erreichbaren Bildern fehl; der Bericht steht
+        # danach im Log und ist auch dann lesenswert, wenn alles gut ging.
+        run: node scripts/check-workshop-maps.mjs
+        continue-on-error: true
+
+      - name: Änderungen committen
+        run: |
+          if git diff --quiet -- js/maps.json; then
+            echo "Keine Änderungen an der Sammlung — nichts zu tun."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add js/maps.json
+          git commit -m "chore: Map-Index aus der Workshop-Sammlung aktualisiert"
+          git push
