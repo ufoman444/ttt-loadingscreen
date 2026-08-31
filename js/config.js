@@ -131,21 +131,46 @@ window.TTT_CONFIG = {
   profileEndpoint: '',
 
   /* ─────────────────────────────────────────────────────────────────────────
-     5b) OPTIONAL: PROFILE VORAB HOLEN
+     5b) ECHTES PROFIL OHNE EIGENEN SERVER  ← der Weg fuer GitHub Pages
 
-     Nur interessant, wenn du keinen Helfer-Worker einrichten willst oder
-     kannst. Dann lassen sich Profile fuer bekannte Stammspieler vorab holen:
+     Steam selbst laesst sich vom Browser nicht abfragen. Es gibt aber Dienste,
+     die genau das stellvertretend erledigen und ihre Antwort mit CORS-Freigabe
+     ausliefern. Damit fuellt sich die Profilkarte fuer JEDEN Spieler von
+     selbst — ohne Server, ohne Deployment, ohne API-Key, ohne Pflegeliste.
+
+     Die Liste wird der Reihe nach durchprobiert; der erste brauchbare Treffer
+     gewinnt. Antwortet keiner, bleibt es beim erzeugten Muster-Avatar — es
+     geht also nichts kaputt.
+
+     Was du wissen solltest: Es ist ein fremder Dienst. Die SteamID des
+     Spielers wird dorthin geschickt (sie ist ohnehin oeffentlich und steht im
+     Spiel neben seinem Namen), und wenn der Dienst ausfaellt, faellt eben das
+     echte Profil weg. Wer das nicht will, laesst die Liste leer und nimmt
+     `profileEndpoint` mit einem eigenen Endpunkt.
+
+     Gefundene Profile liegen einen Tag im localStorage des Spielers — beim
+     naechsten Verbinden ist das Profil sofort da, ohne erneute Anfrage.
+     ───────────────────────────────────────────────────────────────────────── */
+  profileLookupUrls: [
+    'https://playerdb.co/api/player/steam/{steamid}'
+  ],
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     5c) OPTIONAL: PROFILE VORAB HOLEN
+
+     Braucht man normalerweise nicht — 5b deckt jeden Spieler ab. Wer sich
+     auf gar keinen fremden Dienst verlassen will, kann Profile bekannter
+     Stammspieler stattdessen vorab holen:
 
          node scripts/fetch-players.mjs 76561198060265210 76561198...
 
      Das schreibt js/players.json. Wer darin steht, bekommt seinen echten
      Steam-Namen und Avatar ohne jede Wartezeit; alle anderen das erzeugte
-     Muster. Mit einem Worker brauchst du das nicht — der deckt jeden Spieler
-     ab, auch den, der heute zum ersten Mal verbindet.
+     Muster. Diese Datei hat Vorrang vor der Suche aus 5b.
 
      Auf '' setzen schaltet die Datei ab.
      ───────────────────────────────────────────────────────────────────────── */
-  playersIndex: 'js/players.json',
+  playersIndex: '',
 
   /* Nur für die Vorschau im Browser: Ruft man die Seite ohne `?steamid=`
      auf, bliebe die Profilkarte leer. Meldet sich nach vier Sekunden keine

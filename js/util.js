@@ -196,6 +196,58 @@
     return clamp(t, 0, 99.5);
   }
 
+  /* ── Spielerprofile ───────────────────────────────────────────────────── */
+
+  /* Nach diesen Schluesseln wird gesucht, in dieser Reihenfolge. Verschiedene
+     Dienste benennen dieselben Felder unterschiedlich; statt fuer jeden eine
+     eigene Auswertung zu pflegen, wird die Antwort einmal durchsucht. */
+  var NAME_KEYS = ['username', 'personaname', 'persona_name', 'nickname', 'name'];
+  var AVATAR_KEYS = ['avatarfull', 'avatar_full', 'avatarurl', 'avatar_url', 'avatar', 'avatarmedium'];
+
+  /**
+   * Fischt Name und Avatar aus der Antwort eines Profil-Dienstes.
+   *
+   * Bewusst nicht auf einen festen Pfad festgelegt: Die Antwort darf beliebig
+   * verschachtelt sein, und ein zweiter Dienst mit anderem Aufbau funktioniert
+   * ohne Codeaenderung. Bei mehreren Treffern gewinnt der Schluessel, der in
+   * den Listen oben weiter vorne steht — `avatarfull` also vor `avatar`.
+   *
+   * @param {*} data geparste JSON-Antwort
+   * @returns {?{name: string, avatar: string}} null, wenn nichts brauchbar war
+   */
+  function extractProfile(data) {
+    var name = '', avatar = '';
+    var nameRang = 99, avatarRang = 99;
+    var besucht = 0;
+
+    function pruefe(schluessel, wert) {
+      if (typeof wert !== 'string' || !wert) return;
+      var k = schluessel.toLowerCase();
+
+      var n = NAME_KEYS.indexOf(k);
+      if (n !== -1 && n < nameRang && wert.length <= 100) { name = wert; nameRang = n; }
+
+      var a = AVATAR_KEYS.indexOf(k);
+      if (a !== -1 && a < avatarRang && wert.indexOf('http') === 0) { avatar = wert; avatarRang = a; }
+    }
+
+    function lauf(knoten, tiefe) {
+      /* Grenzen gegen absurd verschachtelte oder riesige Antworten. */
+      if (!knoten || typeof knoten !== 'object' || tiefe > 6 || besucht > 500) return;
+
+      for (var schluessel in knoten) {
+        if (!Object.prototype.hasOwnProperty.call(knoten, schluessel)) continue;
+        besucht++;
+        var wert = knoten[schluessel];
+        if (typeof wert === 'object') lauf(wert, tiefe + 1);
+        else pruefe(schluessel, wert);
+      }
+    }
+
+    lauf(data, 0);
+    return (name || avatar) ? { name: name, avatar: avatar } : null;
+  }
+
   /* ── Workshop-Index ───────────────────────────────────────────────────── */
 
   /**
@@ -243,6 +295,7 @@
     stripVersion: stripVersion,
     parseParam: parseParam,
     phaseLabel: phaseLabel,
+    extractProfile: extractProfile,
     progressTarget: progressTarget,
     workshopCandidates: workshopCandidates
   };

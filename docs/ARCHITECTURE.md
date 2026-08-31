@@ -108,6 +108,24 @@ Engine über `GameDetails` mitschickt. Beide Werte überleben das Neuladen im
 Blockiert der Browser den Autostart, wird das nicht als Fehler behandelt: Der
 Knopf beschriftet sich um, und die erste Interaktion startet die Musik.
 
+## Das Spielerprofil
+
+Vier Quellen, die erste, die etwas liefert, gewinnt:
+
+```
+js/players.json  →  localStorage  →  eigener Endpunkt  →  oeffentlicher Dienst
+  (optional)        (letzter Tag)     (profileEndpoint)    (profileLookupUrls)
+```
+
+Greift keine davon, bleibt es beim aus der SteamID erzeugten Muster-Avatar und
+„Spieler #1234". Die Profilkarte ist damit nie leer.
+
+Der letzte Weg ist der, der auch auf einem rein statischen Hoster funktioniert:
+Steam blockt jede Anfrage aus dem Browser, ein öffentlicher Dienst mit
+CORS-Freigabe dagegen nicht. `U.extractProfile()` durchsucht dessen Antwort
+nach Name und Avatar, statt sich auf einen festen Pfad festzulegen — so passt
+ein zweiter Dienst mit anderem Aufbau ohne Codeänderung dazu.
+
 ## Sicherheit
 
 * Der Steam-API-Key liegt **nie** im Client. Wo ein Key nötig ist (echter

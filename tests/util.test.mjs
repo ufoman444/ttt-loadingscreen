@@ -221,3 +221,63 @@ test('workshopCandidates verträgt fehlenden oder leeren Index', () => {
   assert.deepEqual(U.workshopCandidates({}, 'ttt_forest'), []);
   assert.deepEqual(U.workshopCandidates(INDEX, 'ttt_voellig_unbekannt'), []);
 });
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Spielerprofile aus der Antwort eines Profil-Dienstes
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Gekuerzte, aber echte Antwort von playerdb.co. */
+const PLAYERDB = {
+  code: 'player.found',
+  data: {
+    player: {
+      meta: {
+        steam64id: '76561198060265210',
+        personaname: 'ufoman444',
+        avatar: 'https://avatars.steamstatic.com/19c6.jpg',
+        avatarmedium: 'https://avatars.steamstatic.com/19c6_medium.jpg',
+        avatarfull: 'https://avatars.steamstatic.com/19c6_full.jpg'
+      },
+      id: '76561198060265210',
+      username: 'ufoman444',
+      avatar: 'https://avatars.steamstatic.com/19c6_full.jpg'
+    }
+  },
+  success: true
+};
+
+test('extractProfile findet Name und Avatar in einer verschachtelten Antwort', () => {
+  assert.deepEqual(U.extractProfile(PLAYERDB), {
+    name: 'ufoman444',
+    avatar: 'https://avatars.steamstatic.com/19c6_full.jpg'
+  });
+});
+
+test('extractProfile bevorzugt das grosse Avatarbild', () => {
+  const daten = U.extractProfile({ avatar: 'https://a/klein.jpg', avatarfull: 'https://a/gross.jpg' });
+  assert.equal(daten.avatar, 'https://a/gross.jpg');
+});
+
+test('extractProfile kommt auch mit flachem Aufbau zurecht', () => {
+  // Ein zweiter Dienst mit anderem Aufbau soll ohne Codeaenderung passen.
+  assert.deepEqual(U.extractProfile({ nickname: 'Bob', avatar_url: 'https://a/b.png' }), {
+    name: 'Bob',
+    avatar: 'https://a/b.png'
+  });
+});
+
+test('extractProfile verwirft Avatare, die keine URL sind', () => {
+  assert.equal(U.extractProfile({ username: 'X', avatar: '/relativ.png' }).avatar, '');
+});
+
+test('extractProfile liefert null, wenn nichts Brauchbares drinsteht', () => {
+  assert.equal(U.extractProfile({ error: 'not found' }), null);
+  assert.equal(U.extractProfile({}), null);
+  assert.equal(U.extractProfile(null), null);
+});
+
+test('extractProfile laeuft bei Ringschluessen nicht endlos', () => {
+  const ring = { username: 'Bob' };
+  ring.selbst = ring;
+  assert.equal(U.extractProfile(ring).name, 'Bob');
+});

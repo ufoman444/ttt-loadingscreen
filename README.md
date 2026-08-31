@@ -70,7 +70,7 @@ Vorschaubild in dieser Reihenfolge und nimmt das erste, das lädt:
 | 1 | `config.mapImages` | Deine eigene Angabe. Hat immer Vorrang |
 | 2 | `js/maps.json` | Index aus deiner Workshop-Sammlung (siehe unten) |
 | 3 | `img/maps/<mapname>.jpg\|png\|webp` | Falls du doch ein eigenes Bild hinlegst |
-| 4 | **Live-Suche im Workshop** | Für Maps, die in keiner der Quellen stehen |
+| 4 | **Live-Suche im Workshop** | Für Maps, die in keiner der Quellen stehen (braucht einen eigenen Endpunkt) |
 | 5 | Platzhalterkarte | Wenn wirklich nichts zu finden war |
 
 #### Einmalig: Index aus deiner Sammlung erzeugen
@@ -178,9 +178,15 @@ Spieler bekommt also immer dasselbe Profil.
 
 ### Echter Steam-Name und Avatar
 
-Statt des erzeugten Musters kann der Screen den **echten Namen und das echte
-Profilbild** zeigen. Dafür braucht es einen kleinen Server-Endpunkt — der
-Browser des Spielers darf Steam nicht direkt fragen, es fehlen die CORS-Header.
+Der Screen zeigt **standardmäßig den echten Namen und das echte Profilbild**.
+Das funktioniert ohne eigenen Server, weil ein öffentlicher Dienst
+(`playerdb.co`) Steam stellvertretend fragt und seine Antwort mit CORS-Freigabe
+ausliefert — Einzelheiten und Vorbehalte im Abschnitt
+[GitHub Pages im Detail](#3b-github-pages-im-detail).
+
+Wer das lieber selbst in der Hand hat, richtet einen eigenen Endpunkt ein.
+Der Browser des Spielers darf Steam nämlich nicht direkt fragen, es fehlen die
+CORS-Header.
 
 **Einen API-Key brauchst du dafür nicht.** Ohne Key liest der Endpunkt die
 öffentliche Profilseite als XML (`steamcommunity.com/profiles/<id>?xml=1`), die
@@ -238,9 +244,8 @@ hochladen, fertig. Die spätere URL trägst du in `sv_loadingurl` ein.
 
 ## 3b. GitHub Pages im Detail
 
-GitHub Pages ist der bequemste kostenlose Weg — hat aber eine harte Grenze:
-**es führt keinen Code aus.** Das ist relevant, weil Steam sich vom Browser aus
-grundsätzlich nicht abfragen lässt.
+GitHub Pages ist der bequemste kostenlose Weg. Alles Beschriebene funktioniert
+darüber — **ohne dass du irgendwo sonst etwas einrichten musst.**
 
 ### Was ohne alles funktioniert
 
@@ -249,65 +254,60 @@ grundsätzlich nicht abfragen lässt.
 | Ladebalken mit echtem Download-Fortschritt | ja |
 | Serverregeln | ja |
 | Fahrstuhlmusik, Lautstärkeregler, Stummschalter | ja |
-| SteamID, Profil-Link, erzeugter Avatar, Täterprofil | ja |
+| SteamID, Profil-Link, Täterprofil | ja |
+| **Echter Steam-Name und Avatar** | ja, siehe unten |
 | Map-Vorschaubild aus `js/maps.json` | ja |
 | Nächtliche Auffrischung des Map-Index | ja, per GitHub Actions |
 
-Damit ist alles abgedeckt, was die URL-Parameter `?steamid=%s&map=%m` und die
-Engine-Callbacks liefern. Für die Maps deiner Workshop-Sammlung reicht der
-Index vollständig aus.
+### Warum das nicht selbstverständlich ist
 
-### Was einen kleinen Helfer braucht
-
-Zwei Dinge holen ihre Daten live bei Steam:
-
-* **echter Steam-Name und Avatar**
-* **Live-Suche** nach Bildern für Maps, die nicht in deiner Sammlung stehen
-
-Nachgemessen im Browser — alles blockiert:
+Steam lässt sich vom Browser aus nicht abfragen. Nachgemessen:
 
 | Versuch | Ergebnis |
 |---|---|
 | `api.steampowered.com` | blockiert (keine CORS-Header) |
 | `steamcommunity.com/profiles/…?xml=1` | blockiert |
 | `steamcommunity.com/workshop/browse` | blockiert |
-| öffentliche CORS-Vermittler (allorigins, codetabs, cors.lol, whateverorigin) | blockiert |
-| `corsproxy.io` | antwortet, verlangt aber inzwischen einen Schlüssel |
+| allorigins, codetabs, cors.lol, whateverorigin | blockiert |
+| `corsproxy.io` | antwortet, verlangt inzwischen einen Schlüssel |
 
-Es gibt also keinen Trick, der ohne eigenen Endpunkt auskommt. Der kleinste
-mögliche ist ein Cloudflare Worker: kostenlos, ohne API-Key, einmal einrichten.
+Bei den **Maps** ist das egal: Welche Maps es gibt, steht vorher fest — deine
+Sammlung ist eine endliche Liste. Der nächtliche Workflow holt sie einmal und
+legt sie als `js/maps.json` ab.
 
-### Helfer einrichten (etwa fünf Minuten)
+Bei den **Spielern** geht das nicht: Wer gleich verbindet, weiß vorher niemand.
+Es braucht also etwas, das zur Laufzeit antwortet *und* CORS erlaubt.
 
-```bash
-npm run build:worker
-```
+### Die Lösung: ein öffentlicher Profil-Dienst
 
-Das erzeugt `dist/worker.js` — eine einzelne Datei, zusammengebaut aus dem
-Code unter `proxy/`, damit es keine zweite Fassung gibt, die veraltet.
-
-1. <https://dash.cloudflare.com> → **Compute (Workers)** → **Create** →
-   *Start from Hello World* → **Deploy**
-2. **Edit code**, den Inhalt von `dist/worker.js` komplett einfügen, **Deploy**
-3. Die Adresse notieren, etwa `https://ttt-helfer.deinname.workers.dev`
-4. In `js/config.js` eintragen:
+Genau das tut `playerdb.co` — es fragt Steam stellvertretend und liefert die
+Antwort mit CORS-Freigabe aus. Kein Schlüssel, keine Anmeldung, nichts zu
+deployen. Standardmäßig eingetragen in `js/config.js`:
 
 ```js
-profileEndpoint:   'https://ttt-helfer.deinname.workers.dev/steam-profile?steamid={steamid}',
-mapLookupEndpoint: 'https://ttt-helfer.deinname.workers.dev/map-preview?map={map}',
+profileLookupUrls: [
+  'https://playerdb.co/api/player/steam/{steamid}'
+],
 ```
 
-Ab jetzt bekommt **jeder** Spieler seinen echten Namen und Avatar — auch wer
-heute zum ersten Mal verbindet. Nichts muss von Hand gepflegt werden.
+Damit füllt sich die Profilkarte für **jeden** Spieler von selbst — auch für
+den, der heute zum ersten Mal verbindet. Gefundene Profile liegen einen Tag im
+`localStorage` des Spielers; beim nächsten Verbinden sind sie sofort da.
 
-Optional als Variable im Worker (Settings → Variables):
+Ehrlich dazugesagt:
 
-| Variable | Wirkung |
-|---|---|
-| `ALLOWED_ORIGIN` | beschränkt den Zugriff auf deine Seite, z. B. `https://deinname.github.io` |
-| `STEAM_API_KEY` | nutzt die offizielle Web-API statt der öffentlichen Profilseite |
+* Es ist ein **fremder Dienst**. Fällt er aus, bleibt es beim erzeugten
+  Muster-Avatar — kaputt geht nichts.
+* Die SteamID des Spielers wird dorthin geschickt. Sie ist ohnehin öffentlich
+  und steht im Spiel neben seinem Namen, aber wissen solltest du es.
+* Die Liste ist eine Kette: Trag weitere Dienste ein, dann wird der nächste
+  probiert, sobald einer nicht antwortet.
 
-Beide sind freiwillig; ohne sie funktioniert alles genauso.
+Wer keinen fremden Dienst möchte, hat zwei Alternativen: `profileEndpoint` mit
+einem eigenen kleinen Endpunkt (`npm run build:worker` erzeugt einen fertigen
+Cloudflare-Worker, siehe `dist/worker.js`) oder `scripts/fetch-players.mjs`,
+das Profile bekannter Spieler vorab in eine Datei schreibt. Beides ist rein
+optional.
 
 ### Seite veröffentlichen
 
@@ -321,8 +321,14 @@ sv_loadingurl "https://deinname.github.io/ttt-loadingscreen/index.html?steamid=%
 ```
 
 > Auf dem Gratis-Tarif muss das Repository öffentlich sein. Der Ladebildschirm
-> enthält keine Geheimnisse — der API-Key liegt, falls du überhaupt einen
-> nutzt, ausschließlich im Worker.
+> enthält keine Geheimnisse — es wird kein API-Key benötigt.
+
+### Und die Live-Suche nach Map-Bildern?
+
+Die braucht weiterhin einen eigenen Endpunkt und bleibt auf GitHub Pages aus
+(`mapLookupEndpoint: ''`). Sie ist nur für Maps zuständig, die **nicht** in
+deiner Sammlung stehen — der Index deckt alles andere ab. Nimmst du eine neue
+Map in die Sammlung auf, hat sie am nächsten Tag automatisch ihr Bild.
 
 ---
 

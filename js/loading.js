@@ -403,9 +403,21 @@
     renderStats(seed);
     state.playerKnown = !istBeispiel;
 
-    /* Vorab geholtes echtes Profil (js/players.json) — der Weg, der auch auf
-       einem rein statischen Hoster funktioniert. */
-    uebernimmProfil(id);
+    /* Echtes Profil beschaffen, in dieser Reihenfolge:
+       1. bereits bekannt (js/players.json oder Zwischenspeicher) — sofort da
+       2. eigener Endpunkt, falls konfiguriert
+       3. oeffentlicher Dienst — braucht keinen Server und kein Deployment */
+    var bekannt = profilAusCache(id);
+    if (uebernimmProfil(id)) {
+      /* fertig */
+    } else if (bekannt) {
+      zeigeProfil(bekannt);
+      LOG.info('Profil aus dem Zwischenspeicher:', bekannt.name);
+    } else if (CFG.profileEndpoint) {
+      loadRealProfile(id);
+    } else {
+      publicProfileLookup(id);
+    }
 
     if (istBeispiel) {
       el.playerName.textContent = 'Beispielspieler';
@@ -414,8 +426,6 @@
         ' <em>Im Spiel steht hier das Profil des beitretenden Spielers.</em>';
     }
 
-    /* Echter Name + Avatar, falls ein Proxy konfiguriert ist. */
-    if (CFG.profileEndpoint) loadRealProfile(id);
   }
 
   /**
@@ -424,15 +434,25 @@
    * @param {string} id SteamID64
    * @returns {boolean} true, wenn ein Eintrag gefunden wurde
    */
+  /**
+   * Traegt Name und Avatar in die Profilkarte ein.
+   * @param {{name?: string, avatar?: string}} daten
+   */
+  function zeigeProfil(daten) {
+    if (!daten) return;
+    if (daten.name) el.playerName.textContent = daten.name;
+    if (daten.avatar) {
+      /* Ein Bild darf von jeder Domain geladen werden — CORS gilt hier nicht. */
+      el.avatarImg.src = daten.avatar;
+      el.avatarImg.hidden = false;
+    }
+  }
+
   function uebernimmProfil(id) {
     var eintrag = playerIndex && playerIndex.spieler && playerIndex.spieler[id];
     if (!eintrag) return false;
 
-    if (eintrag.name) el.playerName.textContent = eintrag.name;
-    if (eintrag.avatar) {
-      el.avatarImg.src = eintrag.avatar;      /* Bilder brauchen kein CORS */
-      el.avatarImg.hidden = false;
-    }
+    zeigeProfil(eintrag);
     LOG.info('Profil aus dem Index:', eintrag.name);
     return true;
   }
@@ -468,6 +488,72 @@
       xhr.send();
     } catch (e) {
       LOG.error('Spieler-Index konnte nicht geladen werden:', e && e.message);
+    }
+  }
+
+  /* ── Oeffentliche Profilsuche (der Weg fuer GitHub Pages) ─────────────────
+     Steam selbst laesst sich vom Browser nicht fragen. Es gibt aber Dienste,
+     die genau das stellvertretend tun und ihre Antwort mit CORS-Freigabe
+     ausliefern — damit braucht es keinen eigenen Server und nichts zu
+     deployen. Faellt der Dienst aus, bleibt es beim erzeugten Muster.
+     ─────────────────────────────────────────────────────────────────────── */
+  var PROFIL_CACHE_MS = 24 * 60 * 60 * 1000;
+
+  function profilAusCache(id) {
+    try {
+      var roh = global.localStorage.getItem('ttt_profil_' + id);
+      if (!roh) return null;
+      var daten = JSON.parse(roh);
+      if (!daten || (Date.now() - daten.t) > PROFIL_CACHE_MS) return null;
+      return daten;
+    } catch (e) { return null; }
+  }
+
+  function merkeProfil(id, daten) {
+    try {
+      global.localStorage.setItem('ttt_profil_' + id,
+        JSON.stringify({ name: daten.name, avatar: daten.avatar, t: Date.now() }));
+    } catch (e) { /* ohne Zwischenspeicher wird eben jedes Mal gefragt */ }
+  }
+
+  /**
+   * Sucht das Profil bei den konfigurierten Diensten, einer nach dem anderen.
+   * @param {string} id SteamID64
+   * @param {number} [i] Index in der Dienstliste
+   */
+  function publicProfileLookup(id, i) {
+    var dienste = CFG.profileLookupUrls || [];
+    i = i || 0;
+    if (i >= dienste.length) return;
+
+    var url = dienste[i].replace('{steamid}', encodeURIComponent(id));
+
+    function weiter() { publicProfileLookup(id, i + 1); }
+
+    try {
+      var xhr = new global.XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.timeout = 5000;
+      xhr.onload = function () {
+        if (xhr.status < 200 || xhr.status >= 300) {
+          LOG.info('Profildienst antwortete mit HTTP ' + xhr.status + ':', url);
+          return weiter();
+        }
+        var daten;
+        try { daten = U.extractProfile(JSON.parse(xhr.responseText)); }
+        catch (e) { LOG.warning('Profildienst lieferte kein gueltiges JSON.'); return weiter(); }
+
+        if (!daten) { LOG.info('Profildienst kannte die SteamID nicht.'); return weiter(); }
+
+        LOG.info('Profil gefunden:', daten.name);
+        zeigeProfil(daten);
+        merkeProfil(id, daten);
+      };
+      xhr.onerror   = function () { LOG.info('Profildienst nicht erreichbar:', url); weiter(); };
+      xhr.ontimeout = function () { LOG.info('Profildienst hat zu lange gebraucht.'); weiter(); };
+      xhr.send();
+    } catch (e) {
+      LOG.warning('Profilsuche konnte nicht gestartet werden:', e && e.message);
     }
   }
 
