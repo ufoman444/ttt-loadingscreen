@@ -3,16 +3,20 @@
 #
 # Liest die Workshop-Sammlung jede Nacht neu aus und aktualisiert js/maps.json.
 # Nimmst du eine Map in die Sammlung auf, hat sie am nächsten Tag von selbst
-# ein Vorschaubild — ohne dass du irgendetwas tust.
+# ein Vorschaubild — ohne dass du etwas tust.
 #
-# EINRICHTEN
-#   1. Repository → Settings → Secrets and variables → Actions → Variables
-#   2. Neue Variable  COLLECTION_ID  mit deiner Sammlungs-ID anlegen,
-#      z. B. 1509773512. Mehrere durch Leerzeichen trennen.
-#   3. Unter Settings → Actions → General → Workflow permissions
-#      "Read and write permissions" aktivieren, damit der Commit klappt.
+# WELCHE SAMMLUNG?
+#   1. Die Repository-Variable COLLECTION_ID, falls gesetzt
+#      (Settings → Secrets and variables → Actions → Variables).
+#      Mehrere IDs durch Leerzeichen trennen.
+#   2. Sonst die IDs, die in js/maps.json unter "sammlungen" stehen — die
+#      schreibt das Skript beim Erzeugen selbst hinein. In aller Regel ist
+#      also nichts zu konfigurieren.
+#   3. Findet sich beides nicht, wird der Lauf übersprungen. Das ist kein
+#      Fehler: Wer den Index nicht nutzt, soll keine roten Läufe bekommen.
 #
-# Manuell auslösen geht jederzeit über den Reiter "Actions".
+# Damit der Commit klappt, muss unter Settings → Actions → General bei
+# "Workflow permissions" der Schreibzugriff aktiv sein.
 # ══════════════════════════════════════════════════════════════════════════
 
 name: Map-Index aktualisieren
@@ -38,24 +42,40 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Sammlungs-ID prüfen
+      - name: Sammlungs-ID ermitteln
+        id: sammlung
+        env:
+          COLLECTION_ID: ${{ vars.COLLECTION_ID }}
         run: |
-          if [ -z "${{ vars.COLLECTION_ID }}" ]; then
-            echo "::error::Die Variable COLLECTION_ID ist nicht gesetzt."
-            echo "Anlegen unter: Settings → Secrets and variables → Actions → Variables"
-            exit 1
+          IDS="$COLLECTION_ID"
+
+          # Ohne Variable: die IDs nehmen, die im Index selbst vermerkt sind.
+          if [ -z "$IDS" ] && [ -f js/maps.json ]; then
+            IDS=$(node -e "try{const d=require('./js/maps.json');process.stdout.write((d.sammlungen||[]).join(' '))}catch(e){}")
+            [ -n "$IDS" ] && echo "Sammlungs-ID aus js/maps.json übernommen: $IDS"
+          fi
+
+          if [ -z "$IDS" ]; then
+            echo "::notice::Keine Sammlungs-ID gefunden — Lauf übersprungen. Setze die Variable COLLECTION_ID, wenn der Map-Index automatisch aktualisiert werden soll."
+            echo "ueberspringen=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ids=$IDS" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Index neu erzeugen
-        run: node scripts/fetch-workshop-maps.mjs ${{ vars.COLLECTION_ID }}
+        if: steps.sammlung.outputs.ueberspringen != 'true'
+        run: node scripts/fetch-workshop-maps.mjs ${{ steps.sammlung.outputs.ids }}
 
       - name: Index prüfen
-        # Schlägt nur bei nicht erreichbaren Bildern fehl; der Bericht steht
-        # danach im Log und ist auch dann lesenswert, wenn alles gut ging.
+        # Meldet nicht erreichbare Bilder mit Exit 1. Der Bericht im Log ist
+        # auch dann lesenswert, wenn alles in Ordnung war — deshalb darf ein
+        # Fehlschlag hier den Lauf nicht rot färben.
+        if: steps.sammlung.outputs.ueberspringen != 'true'
         run: node scripts/check-workshop-maps.mjs
         continue-on-error: true
 
       - name: Änderungen committen
+        if: steps.sammlung.outputs.ueberspringen != 'true'
         run: |
           if git diff --quiet -- js/maps.json; then
             echo "Keine Änderungen an der Sammlung — nichts zu tun."

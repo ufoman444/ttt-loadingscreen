@@ -112,9 +112,17 @@ hier: kein API-Key. Ohne so eine Schnittstelle bleibt es beim Index — dann
 
 **b) Nächtliche Auffrischung (für rein statische Hoster).** Liegt das Projekt
 auf GitHub, hält `.github/workflows/update-maps.yml` den Index von selbst
-aktuell: einmal pro Nacht Sammlung auslesen, `js/maps.json` committen. Du musst
-nur die Variable `COLLECTION_ID` im Repository setzen — die Datei erklärt das
-Schritt für Schritt.
+aktuell: einmal pro Nacht Sammlung auslesen, `js/maps.json` committen.
+
+Welche Sammlung gemeint ist, findet der Workflow selbst heraus — das Skript
+schreibt die IDs beim Erzeugen in `js/maps.json` hinein. Zu konfigurieren ist
+also nichts. Willst du eine andere Sammlung oder mehrere, setzt du die
+Repository-Variable `COLLECTION_ID` (Settings → Secrets and variables →
+Actions → Variables), die dann Vorrang hat.
+
+Gibt es weder Variable noch Index, überspringt sich der Lauf mit einem Hinweis,
+statt fehlzuschlagen — wer den Index nicht nutzt, soll keine roten Läufe
+bekommen.
 
 #### Was das Skript nicht kann
 

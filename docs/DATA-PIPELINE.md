@@ -156,6 +156,12 @@ Für rein statische Hoster ohne Serverfunktionen liegt
 Nacht aus und committet `js/maps.json`, falls sich etwas geändert hat. Eine
 neu aufgenommene Map hat damit am nächsten Tag ihr Bild, ohne Zutun.
 
+Die Sammlungs-ID muss dafür nirgends hinterlegt werden: Das Skript schreibt sie
+beim Erzeugen unter `sammlungen` in den Index, und der Workflow liest sie von
+dort. Die Repository-Variable `COLLECTION_ID` überschreibt das bei Bedarf.
+Fehlt beides, überspringt sich der Lauf mit einem Hinweis — eine fehlende
+optionale Einstellung darf keinen fehlgeschlagenen Lauf erzeugen.
+
 ## Reihenfolge im Browser
 
 Am Ende probiert `resolveMapImage()` in `js/loading.js` alle Quellen durch und
