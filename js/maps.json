@@ -1,5 +1,5 @@
 {
- "erzeugt": "2026-09-08T08:53:44.639Z",
+ "erzeugt": "2026-09-09T08:59:23.417Z",
  "sammlungen": [
   "1509773512"
  ],
@@ -347,17 +347,17 @@
    "id": "2910128983",
    "quelle": "titel"
   },
-  "ttt_archives_ge5_v1b": {
-   "img": "https://images.steamusercontent.com/ugc/493528961504617423/8D7A3222113F7A7EDB6B8F532DCBE4D5C70C85D9/",
-   "titel": "TTT Archives",
-   "id": "749663718",
-   "quelle": "beschreibung"
-  },
   "ttt_oot3d_hyrule_castle_town_v1a": {
    "img": "https://images.steamusercontent.com/ugc/1616219698869821249/3A2946B0F6E72F2F5ABB2CB6119461318EA0C76D/",
    "titel": "ttt_oot3d_hyrule_castle_town_v1a",
    "id": "2606723672",
    "quelle": "titel"
+  },
+  "ttt_archives_ge5_v1b": {
+   "img": "https://images.steamusercontent.com/ugc/493528961504617423/8D7A3222113F7A7EDB6B8F532DCBE4D5C70C85D9/",
+   "titel": "TTT Archives",
+   "id": "749663718",
+   "quelle": "beschreibung"
   },
   "ttt_medieval_castle": {
    "img": "https://images.steamusercontent.com/ugc/942825538292745798/388D5A9F9814422CCAFCFB0A29C79D9F8D567A4F/",
@@ -608,9 +608,9 @@
   "tttteenroom2022v2": "ttt_teenroom_2022_v2",
   "holidayvillatttprophunt": "@3368101004",
   "tttfrontierland": "ttt_frontier_land",
+  "tttoot3dhyrulecastletownv1a": "ttt_oot3d_hyrule_castle_town_v1a",
   "tttarchivesge5v1b": "ttt_archives_ge5_v1b",
   "tttarchives": "ttt_archives_ge5_v1b",
-  "tttoot3dhyrulecastletownv1a": "ttt_oot3d_hyrule_castle_town_v1a",
   "tttmedievalcastle": "ttt_medieval_castle",
   "tttminecraftspooky": "ttt_minecraft_spooky",
   "tttnighttrap2020": "ttt_nighttrap_2020",
