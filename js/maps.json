@@ -1,5 +1,5 @@
 {
- "erzeugt": "2026-09-26T09:23:04.478Z",
+ "erzeugt": "2026-09-27T10:02:28.537Z",
  "sammlungen": [
   "1509773512"
  ],
@@ -251,16 +251,16 @@
    "id": "3537612611",
    "quelle": "titel"
   },
-  "ttt_castle_black_v5": {
-   "img": "https://images.steamusercontent.com/ugc/436071903984792719/09E6435AA6A0F56974C2668FE45C6CE53CF8E8CF/",
-   "titel": "ttt_castle_black_v5",
-   "id": "484323708",
-   "quelle": "titel"
-  },
   "ttt_diescraper": {
    "img": "https://images.steamusercontent.com/ugc/44573776974950205/013CB246B57CD8A235B55C8EABA42688ACA14B5B/",
    "titel": "ttt_diescraper",
    "id": "3415635566",
+   "quelle": "titel"
+  },
+  "ttt_castle_black_v5": {
+   "img": "https://images.steamusercontent.com/ugc/436071903984792719/09E6435AA6A0F56974C2668FE45C6CE53CF8E8CF/",
+   "titel": "ttt_castle_black_v5",
+   "id": "484323708",
    "quelle": "titel"
   },
   "ttt_hogwarts": {
@@ -588,8 +588,8 @@
   "tttclue2018": "ttt_clue_2018",
   "tttcommunitypool2017": "ttt_community_pool_2017",
   "tttfernwood": "ttt_fernwood",
-  "tttcastleblackv5": "ttt_castle_black_v5",
   "tttdiescraper": "ttt_diescraper",
+  "tttcastleblackv5": "ttt_castle_black_v5",
   "ttthogwarts": "ttt_hogwarts",
   "tttvillageislandmc": "ttt_villageisland_mc",
   "tttvillageislandmctttminecraftmap": "ttt_villageisland_mc",
