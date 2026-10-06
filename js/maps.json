@@ -1,9 +1,9 @@
 {
- "erzeugt": "2026-10-05T11:33:23.942Z",
+ "erzeugt": "2026-10-06T11:18:52.938Z",
  "sammlungen": [
   "1509773512"
  ],
- "anzahl": 74,
+ "anzahl": 75,
  "exakt": {
   "ttt_minecraft_b5": {
    "img": "https://images.steamusercontent.com/ugc/901001920661845076/D1CB9D3B9FC51B7B6E1646FC18F0A5B89211CCE3/",
@@ -544,6 +544,12 @@
    "titel": "ttt_ukiliptus_reborn_v3",
    "id": "3600637157",
    "quelle": "titel"
+  },
+  "ttt_raifucu_maru_dogfix": {
+   "img": "https://images.steamusercontent.com/ugc/10977997157032705799/7AC3E0FC0C99C8DF3135F773D714801B05003492/",
+   "titel": "ttt_raifucu_maru_dogfix",
+   "id": "3811196724",
+   "quelle": "titel"
   }
  },
  "unscharf": {
@@ -652,6 +658,7 @@
   "ttttmuseum": "ttt_tmuseum",
   "thetmuseumttttmuseum": "ttt_tmuseum",
   "mdtudorhallrevamp": "@3480379302",
-  "tttukiliptusrebornv3": "ttt_ukiliptus_reborn_v3"
+  "tttukiliptusrebornv3": "ttt_ukiliptus_reborn_v3",
+  "tttraifucumarudogfix": "ttt_raifucu_maru_dogfix"
  }
 }
