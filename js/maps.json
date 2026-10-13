@@ -1,9 +1,9 @@
 {
- "erzeugt": "2026-10-12T12:04:15.404Z",
+ "erzeugt": "2026-10-13T11:51:32.986Z",
  "sammlungen": [
   "1509773512"
  ],
- "anzahl": 75,
+ "anzahl": 83,
  "exakt": {
   "ttt_minecraft_b5": {
    "img": "https://images.steamusercontent.com/ugc/901001920661845076/D1CB9D3B9FC51B7B6E1646FC18F0A5B89211CCE3/",
@@ -161,6 +161,12 @@
    "id": "229003350",
    "quelle": "titel"
   },
+  "ttt_whitehouse_v9": {
+   "img": "https://images.steamusercontent.com/ugc/25087216407667361/738A7E2CD7554181F3354FBE499C9F6EA04001BA/",
+   "titel": "TTT_whitehouse_v9",
+   "id": "296631816",
+   "quelle": "titel"
+  },
   "ttt_stadium": {
    "img": "https://images.steamusercontent.com/ugc/577844718200457340/3CC981C3674D2FC663C8F40B1B2A3C610E332C9A/",
    "titel": "ttt_stadium",
@@ -171,6 +177,24 @@
    "img": "https://images.steamusercontent.com/ugc/433780009195294636/A1422B94E89A15CD88BD851A19C2DE45C48D4E5C/",
    "titel": "ttt_elevatorandstairs",
    "id": "255086323",
+   "quelle": "titel"
+  },
+  "@200609954": {
+   "img": "https://images.steamusercontent.com/ugc/492313489817801216/99E6A15664D1A7C691815A6215C85139235A1DF3/",
+   "titel": "TTT Minecraft Mythic map FINAL UPDATE",
+   "id": "200609954",
+   "quelle": "titel-normalisiert"
+  },
+  "ttt_magma_v2a": {
+   "img": "https://images.steamusercontent.com/ugc/504700387184871842/FD7D179DC4772067112079653E6B588EDB3B13C8/",
+   "titel": "ttt_magma_v2a",
+   "id": "208061322",
+   "quelle": "titel"
+  },
+  "ttt_office_space": {
+   "img": "https://images.steamusercontent.com/ugc/594761751451486893/B7AA5DD8D1F3E7969355CAC7E252F90C70D2A079/",
+   "titel": "ttt_office_space",
+   "id": "175352638",
    "quelle": "titel"
   },
   "ttt_fiskarna_v2": {
@@ -213,6 +237,18 @@
    "img": "https://images.steamusercontent.com/ugc/630791252739292812/9EB1362BA0B03E03F34025FC18120FCDC276BA63/",
    "titel": "ttt_67thway_v6",
    "id": "177400692",
+   "quelle": "titel"
+  },
+  "ttt_apehouse": {
+   "img": "https://images.steamusercontent.com/ugc/920142672147913792/ABE9BE785840E2C24E52D845A72AA4C77C31893C/",
+   "titel": "TTT_apehouse",
+   "id": "162956753",
+   "quelle": "titel"
+  },
+  "ttt_slender_v3_fix": {
+   "img": "https://images.steamusercontent.com/ugc/848078277554882296/B015DDCC6CE5E45C26538A73359C70FB849FE353/",
+   "titel": "ttt_slender_v3_fix",
+   "id": "143546559",
    "quelle": "titel"
   },
   "ttt_waterworld_tropical": {
@@ -285,6 +321,18 @@
    "img": "https://images.steamusercontent.com/ugc/1665732464124022258/F0196EE7C75DE19561F66A8215340950A3B5C8FE/",
    "titel": "TTT Simple - ttt_simple_otat1",
    "id": "1812199726",
+   "quelle": "titel"
+  },
+  "ttt_panic_room_v1e_f6": {
+   "img": "https://images.steamusercontent.com/ugc/45379582801299401/34ED92F82AD40980D43AF7198F644E58D41A6592/",
+   "titel": "TTT Panic Room",
+   "id": "448734063",
+   "quelle": "beschreibung"
+  },
+  "ttt_ford_marine": {
+   "img": "https://images.steamusercontent.com/ugc/3278933045023451336/D4EEC5DCC5F94B7DE3B83C1BFF28AE3C7DA3C177/",
+   "titel": "ttt_ford_marine",
+   "id": "270803938",
    "quelle": "titel"
   },
   "@2249362659": {
@@ -425,6 +473,12 @@
    "id": "3594342782",
    "quelle": "beschreibung"
   },
+  "ttt_city17": {
+   "img": "https://images.steamusercontent.com/ugc/701786349434029431/FD8E5FD7ABB774AB7BDE2E48409B59FACF911525/",
+   "titel": "ttt_City17",
+   "id": "497077234",
+   "quelle": "titel"
+  },
   "@3469094918": {
    "img": "https://images.steamusercontent.com/ugc/46833816900789393/EF9C517BACCCF66E2B2C49197FBBB84FD056BC62/",
    "titel": "TTT Missile Isles",
@@ -527,6 +581,12 @@
    "id": "3618640803",
    "quelle": "titel"
   },
+  "@1600525696": {
+   "img": "https://images.steamusercontent.com/ugc/954099554323769700/9CB03A8179C8E77B66B5ECA098B7CC93699EF44A/",
+   "titel": "TTT Scary House 2",
+   "id": "1600525696",
+   "quelle": "titel-normalisiert"
+  },
   "ttt_tmuseum": {
    "img": "https://images.steamusercontent.com/ugc/1827921318643404426/803BDA5E1BA082E53B068D0632F34E14EBE8C1DC/",
    "titel": "The T Museum (ttt_tmuseum)",
@@ -579,8 +639,12 @@
   "tttplaza": "ttt_plaza",
   "tttterrorception": "@110656185",
   "tttresidentevil2se": "ttt_residentevil2_se",
+  "tttwhitehousev9": "ttt_whitehouse_v9",
   "tttstadium": "ttt_stadium",
   "tttelevatorandstairs": "ttt_elevatorandstairs",
+  "tttminecraftmythicmapfinalupdate": "@200609954",
+  "tttmagmav2a": "ttt_magma_v2a",
+  "tttofficespace": "ttt_office_space",
   "tttfiskarnav2": "ttt_fiskarna_v2",
   "ttttrainstationa5": "ttt_trainstation_a5",
   "tttcastle2011v3day": "ttt_castle_2011_v3_day",
@@ -588,6 +652,8 @@
   "tttmcdowntown": "ttt_mc_downtown",
   "tttbungalows": "ttt_bungalows",
   "ttt67thwayv6": "ttt_67thway_v6",
+  "tttapehouse": "ttt_apehouse",
+  "tttslenderv3fix": "ttt_slender_v3_fix",
   "tttwaterworldtropical": "ttt_waterworld_tropical",
   "tttpoolparty": "ttt_poolparty",
   "tttskyscraper": "ttt_skyscraper",
@@ -602,6 +668,9 @@
   "denizensandboxttt": "@3220633082",
   "tttsimpleotat1": "ttt_simple_otat1",
   "tttsimpletttsimpleotat1": "ttt_simple_otat1",
+  "tttpanicroomv1ef6": "ttt_panic_room_v1e_f6",
+  "tttpanicroom": "ttt_panic_room_v1e_f6",
+  "tttfordmarine": "ttt_ford_marine",
   "tttrichlandremix": "@2249362659",
   "tttislandstreets": "ttt_islandstreets",
   "tttpizzeria": "ttt_pizzeria",
@@ -632,6 +701,7 @@
   "tttdragonsreach": "ttt_dragonsreach",
   "tttzingylandv2a": "ttt_zingyland_v2a",
   "tttzingyland": "ttt_zingyland_v2a",
+  "tttcity17": "ttt_city17",
   "tttmissileisles": "@3469094918",
   "submergettt": "@3030743243",
   "tttcornershop": "ttt_cornershop",
@@ -655,6 +725,7 @@
   "jungletempletttreupload": "@3638990644",
   "tttoffice": "@3477623010",
   "tttcabinpixels": "ttt_cabin_pixels",
+  "tttscaryhouse2": "@1600525696",
   "ttttmuseum": "ttt_tmuseum",
   "thetmuseumttttmuseum": "ttt_tmuseum",
   "mdtudorhallrevamp": "@3480379302",
