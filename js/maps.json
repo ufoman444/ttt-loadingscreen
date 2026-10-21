@@ -1,5 +1,5 @@
 {
- "erzeugt": "2026-10-20T09:28:00.194Z",
+ "erzeugt": "2026-10-21T09:23:50.424Z",
  "sammlungen": [
   "1509773512"
  ],
@@ -299,16 +299,16 @@
    "id": "484323708",
    "quelle": "titel"
   },
-  "ttt_hogwarts": {
-   "img": "https://images.steamusercontent.com/ugc/766101851235549736/52C1273D2F71EA012BC70F8D4347302F9A293658/",
-   "titel": "ttt_Hogwarts",
-   "id": "1897001193",
-   "quelle": "titel"
-  },
   "ttt_villageisland_mc": {
    "img": "https://images.steamusercontent.com/ugc/2474255624245789240/095480D391D768A45F69BD7D08506394466EDC4A/",
    "titel": "ttt_villageisland_mc TTT Minecraft Map",
    "id": "3342232160",
+   "quelle": "titel"
+  },
+  "ttt_hogwarts": {
+   "img": "https://images.steamusercontent.com/ugc/766101851235549736/52C1273D2F71EA012BC70F8D4347302F9A293658/",
+   "titel": "ttt_Hogwarts",
+   "id": "1897001193",
    "quelle": "titel"
   },
   "@3220633082": {
@@ -662,9 +662,9 @@
   "tttfernwood": "ttt_fernwood",
   "tttdiescraper": "ttt_diescraper",
   "tttcastleblackv5": "ttt_castle_black_v5",
-  "ttthogwarts": "ttt_hogwarts",
   "tttvillageislandmc": "ttt_villageisland_mc",
   "tttvillageislandmctttminecraftmap": "ttt_villageisland_mc",
+  "ttthogwarts": "ttt_hogwarts",
   "denizensandboxttt": "@3220633082",
   "tttsimpleotat1": "ttt_simple_otat1",
   "tttsimpletttsimpleotat1": "ttt_simple_otat1",
